@@ -1,0 +1,12 @@
+
+# Bullseye
+Simple 3D shooting range simulator written in C++ using OpenGL. Work in progress.
+
+## Building
+### Windows
+Use CMake (min. 3.13) to generate Visual Studio solution. You might have to manually set `SDL2_PATH` to your local SDL2 development library location. SDL2.dll have to be copied to output build directory.
+Tested on Windows 10, CMake 3.19.6 and Visual Studio 2019 16.9.1.
+### Linux 
+TODO
+### MacOS 
+TODO

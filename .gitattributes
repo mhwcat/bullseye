@@ -4,3 +4,4 @@
 *.cpp       eol=lf
 *.h         eol=lf
 *.cmake     eol=lf
+*.md        eol=lf
