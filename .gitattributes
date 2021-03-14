@@ -1,0 +1,6 @@
+*.vcproj    eol=crlf
+*.sh        eol=lf
+*.c         eol=lf
+*.cpp       eol=lf
+*.h         eol=lf
+*.cmake     eol=lf
