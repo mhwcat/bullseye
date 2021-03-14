@@ -135,6 +135,8 @@ int main(int argc, char *argv[]) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader_program);
+        int color_loc = glGetUniformLocation(shader_program, "in_color");
+        glUniform4f(color_loc, 0.3f, 0.2f, 0.0f, 0.1f);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 

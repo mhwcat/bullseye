@@ -11,7 +11,7 @@ namespace bullseye::logger {
         strftime(date_time_str, 23, "[%Y-%m-%d %H:%M:%S] ", std::localtime(&time));
     }
 
-    void info(const char* format, ...) {
+    inline void info(const char* format, ...) {
         char time_formatted[23];
         get_current_time(time_formatted);
 
@@ -24,7 +24,7 @@ namespace bullseye::logger {
         fprintf(stdout, "\n");
     }
 
-    void debug(const char* format, ...) {
+    inline void debug(const char* format, ...) {
         char time_formatted[23];
         get_current_time(time_formatted);
 
@@ -37,7 +37,7 @@ namespace bullseye::logger {
         fprintf(stdout, "\n");
     }
 
-    void error(const char* format, ...) {
+    inline void error(const char* format, ...) {
         char time_formatted[23];
         get_current_time(time_formatted);
 

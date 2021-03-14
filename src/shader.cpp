@@ -1,8 +1,10 @@
 #include "shader.h"
-//#include "logger.h"
+#include "logger.h"
 
 #include <fstream>
 #include <sstream>
+
+using namespace bullseye;
 
 namespace bullseye::shader {
 	Shader::Shader(std::string _name) {
@@ -18,10 +20,7 @@ namespace bullseye::shader {
 			return buffer.str();
 		}
 		else {
-			// TODO:
-			// Including logger.h here causes link error (symbol already defined), find out how to use it
-			//bullseye::logger::error("Failed loading vertex shader!");
-			printf("Failed loading vertex shader!");
+			logger::error("Failed loading shader file %s!", path);
 
 			return std::string();
 		}
