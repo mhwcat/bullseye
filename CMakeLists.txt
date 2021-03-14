@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
-set(SOURCE_FILES src/main.cpp src/glad.c)
+set(SOURCE_FILES src/main.cpp src/shader.cpp src/glad.c)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR} PUBLIC ${OPENGL_INCLUDE_DIR})
 

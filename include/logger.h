@@ -5,7 +5,7 @@
 #include <cstdarg>
 #include <ctime>
 
-namespace logger {
+namespace bullseye::logger {
     inline void get_current_time(char* date_time_str) {
         std::time_t time = std::time(nullptr);
         strftime(date_time_str, 23, "[%Y-%m-%d %H:%M:%S] ", std::localtime(&time));
@@ -49,7 +49,6 @@ namespace logger {
         va_end(args);
         fprintf(stdout, "\n");
     }
-
 }
 
 #endif
