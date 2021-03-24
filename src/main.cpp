@@ -2,7 +2,10 @@
 #include "SDL.h"
 #include "SDL_keycode.h"
 #include "glad/glad.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_sdl.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 #include "logger.h"
 #include "shader.h"
@@ -56,6 +59,22 @@ int main(int argc, char *argv[]) {
     //glEnable(GL_CULL_FACE);
     //glDepthFunc(GL_LEQUAL);
     //glEnable(GL_DEPTH_TEST);
+
+
+    // Load ImGui
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplOpenGL3_Init("#version 430");
 
     logger::debug("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
         glGetString(GL_RENDERER), glGetString(GL_VERSION));
@@ -195,6 +214,8 @@ int main(int argc, char *argv[]) {
                     camera.process_input(camera::MovementDirection::NONE);   
                     break;                                   
             }
+
+            ImGui_ImplSDL2_ProcessEvent(&event);
         }
 
         // ===== Logic update
@@ -220,7 +241,7 @@ int main(int argc, char *argv[]) {
         glm::mat4 proj = camera.get_perspective_matrix();
         shader.set_mat4("perspective", proj);
 
-        glm::mat4 view = camera.get_view_matrix(0.f);
+        glm::mat4 view = camera.get_view_matrix(interp);
         shader.set_mat4("view", view);
 
         glm::vec3 light = glm::vec3(3.4f, 0.4f, -0.7f);
@@ -237,6 +258,22 @@ int main(int argc, char *argv[]) {
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
+        // Debug GUI rendering
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame(window);
+        ImGui::NewFrame();
+        ImGui::Begin("Debug");
+        // ImGui::SetWindowPos(ImVec2(WIDTH - 200, 0));
+        // ImGui::SetWindowSize(ImVec2(200, 500));
+        ImGui::Text("Stats");
+        ImGui::Separator();
+        ImGui::Text("Size: [%.2f, %.2f]", ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
+        ImGui::Text("Update: %.2f ms", update_time);
+        ImGui::Text("Render: %.2f ms (%.2f FPS)", last_render_time, 1000.f / last_render_time);
+        ImGui::End();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         SDL_GL_SwapWindow(window);
 
         last_render_time = frame_timer.get_microseconds_since_start() / 1000.f;
@@ -246,6 +283,10 @@ int main(int argc, char *argv[]) {
     glDeleteBuffers(1, &vbo);
     
     shader.delete_program();
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
