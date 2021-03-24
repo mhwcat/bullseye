@@ -8,8 +8,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
 set(SOURCE_FILES 
-    include/logger.h include/shader.h include/structs.h include/camera.h
-    src/main.cpp src/shader.cpp src/camera.cpp src/glad.c)
+    include/logger.h include/shader.h include/structs.h include/camera.h include/simple_timer.h
+    src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/glad.c)
     
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR} PUBLIC ${OPENGL_INCLUDE_DIR})

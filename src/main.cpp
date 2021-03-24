@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "shader.h"
 #include "camera.h"
+#include "simple_timer.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -51,6 +52,9 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    // FIXME: Faces disappear after enabling depth test
+    //glEnable(GL_CULL_FACE);
+    //glDepthFunc(GL_LEQUAL);
     //glEnable(GL_DEPTH_TEST);
 
     logger::debug("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
@@ -133,10 +137,34 @@ int main(int argc, char *argv[]) {
 
     camera::Camera camera(WIDTH, HEIGHT);
 
+    typedef std::chrono::high_resolution_clock Clock;
+    simple_timer::SimpleTimer frame_timer;
+
+    // Time between updates in microseconds
+    const uint64_t dt = static_cast<const uint64_t>(1 * 1000);
+
+    uint64_t current_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count());
+    uint64_t accumulator = 0, new_time = 0, loop_time = 0, time_elapsed = 0;
+    float interp = 0.f, last_render_time = 0.f, update_time = 0.f;
+
     bool running = true;
     while (running) {
-        SDL_Event event;
+        // ===== Timer ops
+        frame_timer.start();
 
+        new_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count());
+        loop_time = new_time - current_time;
+
+        current_time = new_time;
+        accumulator += loop_time;
+
+        // Prevent accumulator reaching too high values when updating takes too long
+        if(accumulator > 250000) {
+            accumulator = 250000; 
+        }
+
+        // ===== Event handling
+        SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
@@ -169,7 +197,20 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        camera.update(0.01f);
+        // ===== Logic update
+        while(accumulator >= dt) {
+            camera.update(dt / 1000000.f);
+
+            time_elapsed += dt;
+            accumulator -= dt;
+        }
+
+        interp = (float) accumulator / (float) dt;
+
+        update_time = frame_timer.get_microseconds_since_start() / 1000.f;
+
+        // ===== Rendering
+        frame_timer.start();
 
         glClearColor(0.0f, 0.5f, 1.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -197,6 +238,8 @@ int main(int argc, char *argv[]) {
         }
 
         SDL_GL_SwapWindow(window);
+
+        last_render_time = frame_timer.get_microseconds_since_start() / 1000.f;
     }
 
     glDeleteVertexArrays(1, &vao);
