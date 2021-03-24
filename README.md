@@ -19,7 +19,8 @@ sudo apt install libsdl2-dev libglm-dev
 Generate makefile and build project:
 ```bash
 mkdir build/ && cd build/  
-cmake ../ && make```
+cmake ../ && make
+```
 Tested on Ubuntu 20.04, CMake 3.16.3 and gcc 9.3.0.
 ### MacOS 
 *TODO*
