@@ -1,7 +1,9 @@
 #ifndef BULLSEYE_MATH_H
 #define BULLSEYE_MATH_H
 
+#define _USE_MATH_DEFINES
 #include <cmath>
+
 #include <glm/glm.hpp>
 
 namespace bullseye::structs {
@@ -19,9 +21,9 @@ namespace bullseye::structs {
     };
 
     struct Vec3u32 {
-        u_int32_t x;
-        u_int32_t y;
-        u_int32_t z;
+        uint32_t x;
+        uint32_t y;
+        uint32_t z;
     };
 
     inline float to_radians(float angle) {

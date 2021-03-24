@@ -4,7 +4,7 @@
 #include <cmath>
 
 namespace bullseye::camera {
-    Camera::Camera(u_int32_t screen_width, u_int32_t screen_height) {
+    Camera::Camera(uint32_t screen_width, uint32_t screen_height) {
         position = glm::vec3(0.f, 0.f, 0.f);
         previous_position = glm::vec3(0.f, 0.f, 0.f);
 
@@ -23,7 +23,7 @@ namespace bullseye::camera {
         update_camera_vectors();
     }
 
-    void Camera::update_aspect_ratio(u_int32_t screen_width, u_int32_t screen_height) {
+    void Camera::update_aspect_ratio(uint32_t screen_width, uint32_t screen_height) {
         aspect_ratio = (float) screen_width / (float) screen_height;
     }
 

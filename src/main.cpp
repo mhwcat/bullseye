@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
-    u_int32_t vao, vbo;
+    uint32_t vao, vbo;
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glBindVertexArray(vao);
