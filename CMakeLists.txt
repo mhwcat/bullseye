@@ -7,14 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
+# External libs included 
 set(IMGUI_HEADERS include/imgui/imconfig.h include/imgui/imgui_internal.h include/imgui/imgui.h include/imgui/imstb_rectpack.h include/imgui/imstb_textedit.h 
     include/imgui/imstb_truetype.h include/imgui/imgui_impl_opengl3.h include/imgui/imgui_impl_sdl.h)
 set(IMGUI_SOURCES src/imgui/imgui.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_tables.cpp
     src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui_impl_sdl.cpp)
+set(TOBJL_HEADERS include/tobjl/tiny_obj_loader.h)
+set(TOBJL_SOURCES src/tobjl/tiny_obj_loader.cpp)
 
 set(SOURCE_FILES 
-    include/logger.h include/shader.h include/structs.h include/camera.h include/simple_timer.h ${IMGUI_HEADERS}
-    src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/glad.c ${IMGUI_SOURCES})
+    include/logger.h include/shader.h include/structs.h include/camera.h include/simple_timer.h ${IMGUI_HEADERS} ${TOBJL_HEADERS}
+    src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/glad.c ${IMGUI_SOURCES} ${TOBJL_SOURCES})
     
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR} PUBLIC ${OPENGL_INCLUDE_DIR})

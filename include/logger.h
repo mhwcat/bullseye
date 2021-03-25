@@ -37,6 +37,19 @@ namespace bullseye::logger {
         fprintf(stdout, "\n");
     }
 
+    inline void warn(const char* format, ...) {
+        char time_formatted[23];
+        get_current_time(time_formatted);
+
+        va_list args;
+        fprintf(stdout, time_formatted);
+        fprintf(stdout, "WARN ");
+        va_start(args, format);
+        vfprintf(stdout, format, args);
+        va_end(args);
+        fprintf(stdout, "\n");
+    }
+
     inline void error(const char* format, ...) {
         char time_formatted[23];
         get_current_time(time_formatted);

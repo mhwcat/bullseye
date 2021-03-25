@@ -6,6 +6,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
+#include "tobjl/tiny_obj_loader.h"
 
 #include "logger.h"
 #include "shader.h"
@@ -60,9 +61,7 @@ int main(int argc, char *argv[]) {
     //glDepthFunc(GL_LEQUAL);
     //glEnable(GL_DEPTH_TEST);
 
-
     // Load ImGui
-    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
