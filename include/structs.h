@@ -27,7 +27,7 @@ namespace bullseye::structs {
     };
 
     inline float to_radians(float angle) {
-        return (angle * (M_PI / 180.0f));
+        return (angle * ((float) M_PI / 180.0f));
     }
 
     inline glm::vec3 lerp(glm::vec3 x, glm::vec3 y, float t) {

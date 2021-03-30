@@ -31,6 +31,8 @@ namespace bullseye::camera {
             glm::mat4 get_view_matrix(float interp);
 
             const glm::vec3* get_position();
+            const bool is_mouse_attached();
+            void switch_mouse_attached();
         private:
             glm::vec3 position;
             glm::vec3 previous_position;
@@ -47,6 +49,8 @@ namespace bullseye::camera {
             glm::vec3 world_up;
             float yaw;
             float pitch;
+
+            bool mouse_attached;
     };
 }
 

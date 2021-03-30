@@ -6,12 +6,12 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include "tobjl/tiny_obj_loader.h"
 
 #include "logger.h"
 #include "shader.h"
 #include "camera.h"
 #include "simple_timer.h"
+#include "mesh.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -56,10 +56,10 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // FIXME: Faces disappear after enabling depth test
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
     //glDepthFunc(GL_LEQUAL);
-    //glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
 
     // Load ImGui
     IMGUI_CHECKVERSION();
@@ -81,77 +81,9 @@ int main(int argc, char *argv[]) {
     shader::Shader shader("main");
     shader.load_vertex_shader("assets/shaders/vertex.glsl");
     shader.load_fragment_shader("assets/shaders/fragment.glsl");
-    shader.link_shaders();
+    shader.link_shaders();   
 
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-    // world space positions of our cubes
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
-
-    uint32_t vao, vbo;
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glBindVertexArray(0); 
+    mesh::Mesh mesh("assets/models/cube.obj");
 
     camera::Camera camera(WIDTH, HEIGHT);
 
@@ -208,10 +140,28 @@ int main(int argc, char *argv[]) {
                     if (event.key.keysym.sym == SDLK_d) {
                         camera.process_input(camera::MovementDirection::RIGHT);
                     }  
+                    if (event.key.keysym.sym == SDLK_q) {
+                        camera.process_input(camera::MovementDirection::UP);
+                    }
+                    if (event.key.keysym.sym == SDLK_z) {
+                        camera.process_input(camera::MovementDirection::DOWN);
+                    }
+                    if (event.key.keysym.sym == SDLK_c) {
+                        camera.switch_mouse_attached();
+                    }
                     break;  
                 case SDL_KEYUP:
                     camera.process_input(camera::MovementDirection::NONE);   
-                    break;                                   
+                    break; 
+
+                case SDL_MOUSEMOTION:
+                    if (camera.is_mouse_attached()) {
+                        int xrel = event.motion.xrel;
+                        int yrel = -event.motion.yrel;
+
+                        camera.process_mouse_input((float)xrel, (float)yrel);
+                    }
+                    break;
             }
 
             ImGui_ImplSDL2_ProcessEvent(&event);
@@ -233,7 +183,7 @@ int main(int argc, char *argv[]) {
         frame_timer.start();
 
         glClearColor(0.0f, 0.5f, 1.0f, 0.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
 
@@ -243,32 +193,27 @@ int main(int argc, char *argv[]) {
         glm::mat4 view = camera.get_view_matrix(interp);
         shader.set_mat4("view", view);
 
-        glm::vec3 light = glm::vec3(3.4f, 0.4f, -0.7f);
+        glm::vec3 light = glm::vec3(2.4f, 2.4f, -1.7f);
         shader.set_vec3("u_light", light);
 
-        glBindVertexArray(vao);
-        for (unsigned int i = 0; i < 10; i++) {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            shader.set_mat4("model", model);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
+        shader.set_mat4("model", model);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        mesh.draw(shader);
 
         // Debug GUI rendering
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
         ImGui::Begin("Debug");
-        // ImGui::SetWindowPos(ImVec2(WIDTH - 200, 0));
-        // ImGui::SetWindowSize(ImVec2(200, 500));
         ImGui::Text("Stats");
         ImGui::Separator();
         ImGui::Text("Size: [%.2f, %.2f]", ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
         ImGui::Text("Update: %.2f ms", update_time);
         ImGui::Text("Render: %.2f ms (%.2f FPS)", last_render_time, 1000.f / last_render_time);
+        ImGui::Separator();
+        ImGui::Text("Camera pos: [%.2f, %.2f, %.2f]", camera.get_position()->x, camera.get_position()->y, camera.get_position()->z);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -278,8 +223,9 @@ int main(int argc, char *argv[]) {
         last_render_time = frame_timer.get_microseconds_since_start() / 1000.f;
     }
 
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
+    // @TODO: Where to delete these?
+    // glDeleteVertexArrays(1, &vao);
+    // glDeleteBuffers(1, &vbo);
     
     shader.delete_program();
 

@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
+#include <SDL.h>
 
 namespace bullseye::camera {
     Camera::Camera(uint32_t screen_width, uint32_t screen_height) {
@@ -18,6 +19,8 @@ namespace bullseye::camera {
         movement_speed = DEFAULT_MOVEMENT_SPEED;
         movement_direction = NONE;
         sensitivity = 0.1f;
+
+        mouse_attached = false;
 
         update_aspect_ratio(screen_width, screen_height);
         update_camera_vectors();
@@ -117,6 +120,21 @@ namespace bullseye::camera {
 
     const glm::vec3* Camera::get_position() {
         return &this->position;
+    }
+
+    const bool Camera::is_mouse_attached() {
+        return this->mouse_attached;
+    }
+
+    void Camera::switch_mouse_attached() {
+        this->mouse_attached = !this->mouse_attached;
+
+        if (this->mouse_attached) {
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        }
+        else {
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+        }
     }
 
 }
