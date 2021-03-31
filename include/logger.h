@@ -19,7 +19,6 @@ namespace bullseye::logger {
     static const unsigned int MS_PART_BUFFER_SIZE = 6; // "sss] "
     static const unsigned int TIME_BUFFER_SIZE = 32;
 
-    // @TODO: Check if Unix version works
     inline void internal_gettimeofday(struct timeval* tp) {
 #ifdef WIN32
         FILETIME file_time;

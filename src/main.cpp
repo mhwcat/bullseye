@@ -15,6 +15,7 @@
 #include "camera.h"
 #include "simple_timer.h"
 #include "mesh.h"
+#include "app_settings.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -22,8 +23,11 @@ const int HEIGHT = 720;
 using namespace bullseye;
 
 int main(int argc, char *argv[]) {
-    logger::info("Starting Bullseye!");
+    logger::info("Starting Bullseye");
 
+    app_settings::AppSettings app_settings { .camera_mouse_attached = false, .camera_free_fly = true };
+
+    logger::debug("Initializing SDL");
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         logger::error("Failed initializing SDL! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
@@ -40,11 +44,21 @@ int main(int argc, char *argv[]) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+    logger::debug("Initializing window");
     SDL_Window* window = SDL_CreateWindow("Bullseye", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL) {
         logger::error("Failed initializing window! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
     }
+    {
+        int window_w, window_h, window_x, window_y;
+
+        SDL_GetWindowSize(window, &window_w, &window_h);
+        SDL_GetWindowPosition(window, &window_x, &window_y);
+        logger::debug("Initialized window [posX=%d, posY=%d, width=%d, height=%d, title=%s]", window_x, window_y, window_w, window_h, SDL_GetWindowTitle(window));
+    }
+
+    logger::debug("Initializing GL context");
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     if (gl_context == NULL) {
         logger::error("Failed initializing GL context! Error: %s", SDL_GetError());
@@ -86,7 +100,8 @@ int main(int argc, char *argv[]) {
     shader.load_fragment_shader("assets/shaders/fragment.glsl");
     shader.link_shaders();   
 
-    mesh::Mesh mesh("assets/models/cube.obj");
+    std::vector<mesh::Mesh> meshes;
+    meshes.push_back(mesh::Mesh("assets/models/cube.obj"));
 
     camera::Camera camera(WIDTH, HEIGHT);
 
@@ -150,25 +165,27 @@ int main(int argc, char *argv[]) {
                         camera.process_input(camera::MovementDirection::DOWN);
                     }
                     if (event.key.keysym.sym == SDLK_c) {
-                        camera.switch_mouse_attached();
+                        app_settings.camera_mouse_attached = !app_settings.camera_mouse_attached;
                     }
+                    if (event.key.keysym.sym == SDLK_f) {
+                        app_settings.camera_free_fly = !app_settings.camera_free_fly;
+                    }                    
                     break;  
                 case SDL_KEYUP:
                     camera.process_input(camera::MovementDirection::NONE);   
                     break; 
-
                 case SDL_MOUSEMOTION:
                     if (camera.is_mouse_attached()) {
-                        int xrel = event.motion.xrel;
-                        int yrel = -event.motion.yrel;
-
-                        camera.process_mouse_input((float)xrel, (float)yrel);
+                        camera.process_mouse_input((float) event.motion.xrel, (float) -event.motion.yrel);
                     }
                     break;
             }
 
             ImGui_ImplSDL2_ProcessEvent(&event);
         }
+        
+        // ===== App settings
+        camera.update_settings(&app_settings);
 
         // ===== Logic update
         while(accumulator >= dt) {
@@ -199,11 +216,15 @@ int main(int argc, char *argv[]) {
         glm::vec3 light = glm::vec3(2.4f, 2.4f, -1.7f);
         shader.set_vec3("u_light", light);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
-        shader.set_mat4("model", model);
+        shader.set_float("time", (float) time_elapsed);
 
-        mesh.draw(shader);
+        for (auto mesh : meshes) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
+            shader.set_mat4("model", model);
+
+            mesh.draw(shader);
+        }
 
         // Debug GUI rendering
         ImGui_ImplOpenGL3_NewFrame();
@@ -215,8 +236,15 @@ int main(int argc, char *argv[]) {
         ImGui::Text("Size: [%.2f, %.2f]", ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
         ImGui::Text("Update: %.2f ms", update_time);
         ImGui::Text("Render: %.2f ms (%.2f FPS)", last_render_time, 1000.f / last_render_time);
+        ImGui::Spacing();
+        ImGui::Text("Camera");
         ImGui::Separator();
-        ImGui::Text("Camera pos: [%.2f, %.2f, %.2f]", camera.get_position()->x, camera.get_position()->y, camera.get_position()->z);
+        ImGui::Text("Pos: [%.2f, %.2f, %.2f]", camera.get_position()->x, camera.get_position()->y, camera.get_position()->z);
+        ImGui::Text("Yaw: %.2f", camera.get_yaw());
+        ImGui::Text("Pitch: %.2f", camera.get_pitch());
+        ImGui::Spacing();
+        ImGui::Checkbox("Locked", &app_settings.camera_mouse_attached);
+        ImGui::Checkbox("Free fly", &app_settings.camera_free_fly);
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -232,15 +260,17 @@ int main(int argc, char *argv[]) {
     
     shader.delete_program();
 
+    logger::debug("Shutting down ImGui");
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
+    logger::debug("Shutting down GL context and SDL");
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     SDL_Quit();
     
-    logger::info("Quitting Bullseye!");
+    logger::info("Quitting Bullseye");
 
     return EXIT_SUCCESS;
 }

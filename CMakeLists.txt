@@ -16,7 +16,7 @@ set(TOBJL_HEADERS include/tobjl/tiny_obj_loader.h)
 set(TOBJL_SOURCES src/tobjl/tiny_obj_loader.cpp)
 
 set(SOURCE_FILES 
-    include/logger.h include/shader.h include/structs.h include/camera.h include/simple_timer.h include/mesh.h ${IMGUI_HEADERS} ${TOBJL_HEADERS}
+    include/logger.h include/shader.h include/math_utils.h include/camera.h include/simple_timer.h include/mesh.h include/app_settings.h ${IMGUI_HEADERS} ${TOBJL_HEADERS}
     src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/mesh.cpp src/glad.c ${IMGUI_SOURCES} ${TOBJL_SOURCES})
     
 include_directories(${PROJECT_SOURCE_DIR}/include)

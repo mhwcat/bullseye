@@ -1,4 +1,8 @@
 #include "camera.h"
+#include "app_settings.h"
+#include "math_utils.h"
+#include "logger.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
@@ -21,28 +25,29 @@ namespace bullseye::camera {
         sensitivity = 0.1f;
 
         mouse_attached = false;
+        free_fly = true;
 
         update_aspect_ratio(screen_width, screen_height);
         update_camera_vectors();
     }
 
     void Camera::update_aspect_ratio(uint32_t screen_width, uint32_t screen_height) {
-        aspect_ratio = (float) screen_width / (float) screen_height;
+        this->aspect_ratio = (float) screen_width / (float) screen_height;
     }
 
     void Camera::update_movement_speed(float movement_speed_delta) {
-        if (movement_speed + movement_speed_delta < 0.0f) {
-            movement_speed = 0.0f;
+        if (this->movement_speed + movement_speed_delta < 0.0f) {
+            this->movement_speed = 0.0f;
         } else {
-            movement_speed += movement_speed_delta;
+            this->movement_speed += movement_speed_delta;
         }
     }
 
     void Camera::update_camera_vectors() {
         glm::vec3 new_front = glm::normalize(glm::vec3(
-            cos(to_radians(yaw)) * cos(to_radians(pitch)),
-            sin(to_radians(pitch)),
-            sin(to_radians(yaw)) * cos(to_radians(pitch))
+            cos(math_utils::to_radians(yaw)) * cos(math_utils::to_radians(pitch)),
+            sin(math_utils::to_radians(pitch)),
+            sin(math_utils::to_radians(yaw)) * cos(math_utils::to_radians(pitch))
         ));
 
         glm::vec3 current_world_up = glm::vec3(world_up.x, world_up.y, world_up.z);
@@ -62,18 +67,28 @@ namespace bullseye::camera {
         up.z = new_up.z;
     }
 
+    // @TODO: Fix weird jump happening above 90/-90 pitch in free-fly
     void Camera::process_mouse_input(float x_offset, float y_offset) {
         float x_offset_adjusted = x_offset * sensitivity;
         float y_offset_adjusted = y_offset * sensitivity;
 
-        yaw += x_offset_adjusted;
-        pitch += y_offset_adjusted;
+        this->yaw += x_offset_adjusted;
+        this->pitch += y_offset_adjusted;
+
+        // Constraint pitch for first-person camera
+        if (!this->free_fly) {
+            if (this->pitch > 89.0f) {
+                this->pitch = 89.0f;
+            } else if (this->pitch < -89.0f) {
+                this->pitch = -89.0f;
+            }
+        }
 
         update_camera_vectors();
     }
 
-    void Camera::process_input(MovementDirection _movement_direction) {
-        movement_direction = _movement_direction;
+    void Camera::process_input(MovementDirection movement_direction) {
+        this->movement_direction = movement_direction;
     }
 
     void Camera::update(float delta_time) {
@@ -85,10 +100,14 @@ namespace bullseye::camera {
 
         switch (this->movement_direction) {
             case UP:
-                position += up * velocity;
+                if (this->free_fly) {
+                    position += up * velocity;
+                }
                 break;
             case DOWN:
-                position -= up * velocity;
+                if (this->free_fly) {
+                    position -= up * velocity;
+                }
                 break;
             case FRONT:
                 position += front * velocity;
@@ -105,6 +124,11 @@ namespace bullseye::camera {
             default:
                 break;
         }
+
+        // Keep camera (player) on the ground for first-person camera
+        if (!this->free_fly) {
+            position.y = 0.f;
+        }
     }
 
     glm::mat4 Camera::get_perspective_matrix() {
@@ -113,7 +137,7 @@ namespace bullseye::camera {
 
     glm::mat4 Camera::get_view_matrix(float interp) {
         // TODO: Find lerp in glm and use it
-        glm::vec3 interpolated_pos = lerp(previous_position, position, interp);
+        glm::vec3 interpolated_pos = math_utils::lerp(previous_position, position, interp);
 
         return glm::lookAt(interpolated_pos, (interpolated_pos + front), up);
     }
@@ -122,19 +146,32 @@ namespace bullseye::camera {
         return &this->position;
     }
 
+    const float Camera::get_pitch() {
+        return this->pitch;
+    }
+
+    const float Camera::get_yaw() {
+        return this->yaw;
+    }
+
     const bool Camera::is_mouse_attached() {
         return this->mouse_attached;
     }
 
-    void Camera::switch_mouse_attached() {
-        this->mouse_attached = !this->mouse_attached;
-
-        if (this->mouse_attached) {
-            SDL_SetRelativeMouseMode(SDL_TRUE);
-        }
-        else {
+    void Camera::update_settings(app_settings::AppSettings *app_settings) {
+        if (this->mouse_attached && !app_settings->camera_mouse_attached) {
+            this->mouse_attached = false;
             SDL_SetRelativeMouseMode(SDL_FALSE);
+
+            logger::debug("Camera detached from mouse");
+        } else if (!this->mouse_attached && app_settings->camera_mouse_attached) {
+            this->mouse_attached = true;
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+
+            logger::debug("Camera attached to mouse");
         }
+
+        this->free_fly = app_settings->camera_free_fly;
     }
 
 }

@@ -1,10 +1,9 @@
 #ifndef BULLSEYE_CAMERA_H
 #define BULLSEYE_CAMERA_H
 
-#include "structs.h"
-#include <glm/glm.hpp>
+#include "app_settings.h"
 
-using namespace bullseye::structs;
+#include <glm/glm.hpp>
 
 namespace bullseye::camera {
     const float FOV                         = 45.f;
@@ -25,14 +24,16 @@ namespace bullseye::camera {
             void update_aspect_ratio(uint32_t screen_width, uint32_t screen_height);
             void update(float delta_time);
             void process_mouse_input(float x_offset, float y_offset);
-            void process_input(MovementDirection _movement_direction);
+            void process_input(MovementDirection movement_direction);
 
             glm::mat4 get_perspective_matrix();
             glm::mat4 get_view_matrix(float interp);
-
             const glm::vec3* get_position();
+            const float get_pitch();
+            const float get_yaw();
             const bool is_mouse_attached();
-            void switch_mouse_attached();
+
+            void update_settings(app_settings::AppSettings *app_settings);
         private:
             glm::vec3 position;
             glm::vec3 previous_position;
@@ -51,6 +52,7 @@ namespace bullseye::camera {
             float pitch;
 
             bool mouse_attached;
+            bool free_fly;
     };
 }
 

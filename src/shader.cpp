@@ -104,6 +104,10 @@ namespace bullseye::shader {
         glUniform1i(glGetUniformLocation(this->id, name.c_str()), value);
     }
 
+    void Shader::set_float(const std::string &name, float value) {
+        glUniform1f(glGetUniformLocation(this->id, name.c_str()), value);
+    }
+
     void Shader::set_vec3(const std::string &name, const glm::vec3 &value) {
         glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, &value[0]);
     }
