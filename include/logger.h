@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <cstdarg>
 #include <ctime>
+#include <cstring>
+#include <cstdint>
+
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -12,7 +15,7 @@
 
 namespace bullseye::logger {
     /* FILETIME of Jan 1 1970 00:00:00. */
-    static const unsigned __int64 epoch = ((unsigned __int64) 116444736000000000ULL);
+    static const uint64_t epoch = ((uint64_t) 116444736000000000ULL);
     static const unsigned int MS_PART_BUFFER_SIZE = 6; // "sss] "
     static const unsigned int TIME_BUFFER_SIZE = 32;
 
@@ -52,12 +55,12 @@ namespace bullseye::logger {
         get_current_time(time_formatted);
 
         va_list args;
-        fprintf(stdout, time_formatted);
-        fprintf(stdout, "\033[92mINFO\033[39m  ");
+        fputs(time_formatted, stdout);
+        fputs("\033[92mINFO\033[39m  ", stdout);
         va_start(args, format);
         vfprintf(stdout, format, args);
         va_end(args);
-        fprintf(stdout, "\n");
+        fputs("\n", stdout);
     }
 
     inline void debug(const char* format, ...) {
@@ -65,12 +68,12 @@ namespace bullseye::logger {
         get_current_time(time_formatted);
 
         va_list args;
-        fprintf(stdout, time_formatted);
-        fprintf(stdout, "\033[36mDEBUG\033[39m ");
+        fputs(time_formatted, stdout);
+        fputs("\033[36mDEBUG\033[39m ", stdout);
         va_start(args, format);
         vfprintf(stdout, format, args);
         va_end(args);
-        fprintf(stdout, "\n");
+        fputs("\n", stdout);
     }
 
     inline void warn(const char* format, ...) {
@@ -78,12 +81,12 @@ namespace bullseye::logger {
         get_current_time(time_formatted);
 
         va_list args;
-        fprintf(stdout, time_formatted);
-        fprintf(stdout, "\033[33mWARN\033[39m  ");
+        fputs(time_formatted, stdout);
+        fputs("\033[33mWARN\033[39m  ", stdout);
         va_start(args, format);
         vfprintf(stdout, format, args);
         va_end(args);
-        fprintf(stdout, "\n");
+        fputs("\n", stdout);
     }
 
     inline void error(const char* format, ...) {
@@ -91,12 +94,12 @@ namespace bullseye::logger {
         get_current_time(time_formatted);
 
         va_list args;
-        fprintf(stdout, time_formatted);
-        fprintf(stdout, "\033[91mERROR\033[39m ");
+        fputs(time_formatted, stdout);
+        fputs("\033[91mERROR\033[39m ", stdout);
         va_start(args, format);
         vfprintf(stdout, format, args);
         va_end(args);
-        fprintf(stdout, "\n");
+        fputs("\n", stdout);
     }
 }
 

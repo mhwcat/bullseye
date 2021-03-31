@@ -1,4 +1,7 @@
 #include <cstdlib>
+#include <cstdint>
+#include <cstring>
+
 #include "SDL.h"
 #include "SDL_keycode.h"
 #include "glad/glad.h"
