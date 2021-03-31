@@ -1,14 +1,13 @@
 #ifndef BULLSEYE_MATH_UTILS_H
 #define BULLSEYE_MATH_UTILS_H
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
 #include <glm/glm.hpp>
+
+#define PI_VAL 3.141592653589793238f
 
 namespace bullseye::math_utils {
     inline float to_radians(float angle) {
-        return (angle * ((float) M_PI / 180.f));
+        return (angle * ((float) PI_VAL / 180.f));
     }
 
     inline glm::vec3 lerp(glm::vec3 x, glm::vec3 y, float t) {
