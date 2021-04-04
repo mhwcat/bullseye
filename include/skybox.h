@@ -23,6 +23,7 @@ namespace bullseye::skybox {
             virtual ~Skybox();
 
             void draw(glm::mat4 projection, glm::mat4 view);
+            void unload();
         private:
             shader::Shader *shader;
             uint32_t texture_id;

@@ -269,11 +269,14 @@ int main(int argc, char *argv[]) {
         last_render_time = frame_timer.get_microseconds_since_start() / 1000.f;
     }
 
-    // @TODO: Where to delete these?
-    // glDeleteVertexArrays(1, &vao);
-    // glDeleteBuffers(1, &vbo);
-    
+
+    // Cleanup
+    for (auto mesh : meshes) {
+        mesh.unload();
+    }
+
     shader.delete_program();
+    skybox.unload();
 
     logger::debug("Shutting down ImGui");
     ImGui_ImplOpenGL3_Shutdown();

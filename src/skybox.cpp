@@ -19,15 +19,14 @@ namespace bullseye::skybox {
     }
 
     Skybox::~Skybox() {
-        delete this->shader;
     }
 
     void Skybox::setup_skybox(std::vector<std::string> texture_paths) {
         glGenTextures(1, &this->texture_id);
         glBindTexture(GL_TEXTURE_CUBE_MAP, this->texture_id);
 
-        int i, x, y, n;
-        i = 0;
+        int x, y, n;
+        uint32_t i = 0;
         for (auto texture_path : texture_paths) {
             unsigned char *data = stbi_load(texture_path.c_str(), &x, &y, &n, 0);
             
@@ -35,9 +34,9 @@ namespace bullseye::skybox {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
                 stbi_image_free(data);
 
-                logger::debug("Loaded image %s with size %d %d", texture_path.c_str(), x, y);
+                logger::debug("Loaded texture [path=%s, w=%d, h=%d]", texture_path.c_str(), x, y);
             } else {
-                logger::error("Failed to load image %s", texture_path.c_str());
+                logger::error("Failed to load texture [path=%s]", texture_path.c_str());
             }
 
             i++;
@@ -71,5 +70,14 @@ namespace bullseye::skybox {
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
         glDepthFunc(GL_LESS);
+    }
+
+    void Skybox::unload() {
+        logger::debug("Unloading skybox shader");
+
+        if (shader != nullptr) {
+            shader->delete_program();
+            delete shader;
+        }
     }
 }

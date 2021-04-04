@@ -25,6 +25,7 @@ namespace bullseye::mesh {
             std::vector<uint32_t> indices;
             std::vector<Texture> textures;
             uint32_t vao;
+            uint32_t vbo;
 
             void load_obj_file(std::string path);
             void setup_mesh();
@@ -32,6 +33,7 @@ namespace bullseye::mesh {
         public:
             Mesh(std::string path);
             void draw(shader::Shader& shader);
+            void unload();
     };
 }
 

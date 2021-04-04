@@ -58,14 +58,14 @@ namespace bullseye::mesh {
     }
 
     void Mesh::setup_mesh() {
-        uint32_t vbo, ebo;
+        uint32_t ebo;
 
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
+        glGenVertexArrays(1, &this->vao);
+        glGenBuffers(1, &this->vbo);
         glGenBuffers(1, &ebo);
 
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindVertexArray(this->vao);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -95,8 +95,13 @@ namespace bullseye::mesh {
         //     glActive
         // }
 
-        glBindVertexArray(vao);
+        glBindVertexArray(this->vao);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+    }
+
+    void Mesh::unload() {
+        glDeleteVertexArrays(1, &this->vao);
+        glDeleteBuffers(1, &this->vbo);
     }
 }
