@@ -14,10 +14,11 @@ set(IMGUI_SOURCES src/imgui/imgui.cpp src/imgui/imgui_widgets.cpp src/imgui/imgu
     src/imgui/imgui_impl_opengl3.cpp src/imgui/imgui_impl_sdl.cpp)
 set(TOBJL_HEADERS include/tobjl/tiny_obj_loader.h)
 set(TOBJL_SOURCES src/tobjl/tiny_obj_loader.cpp)
+set(STB_HEADERS include/stb/stb_image.h)
 
 set(SOURCE_FILES 
-    include/logger.h include/shader.h include/math_utils.h include/camera.h include/simple_timer.h include/mesh.h include/app_settings.h ${IMGUI_HEADERS} ${TOBJL_HEADERS}
-    src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/mesh.cpp src/glad.c ${IMGUI_SOURCES} ${TOBJL_SOURCES})
+    include/logger.h include/shader.h include/math_utils.h include/camera.h include/simple_timer.h include/mesh.h include/app_settings.h include/skybox.h ${IMGUI_HEADERS} ${TOBJL_HEADERS} ${STB_HEADERS}
+    src/glad.c src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/mesh.cpp src/skybox.cpp ${IMGUI_SOURCES} ${TOBJL_SOURCES})
     
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR} PUBLIC ${OPENGL_INCLUDE_DIR})

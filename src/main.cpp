@@ -10,12 +10,17 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+// @TODO: Move this somewhere
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
+
 #include "logger.h"
 #include "shader.h"
 #include "camera.h"
 #include "simple_timer.h"
 #include "mesh.h"
 #include "app_settings.h"
+#include "skybox.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -75,7 +80,6 @@ int main(int argc, char *argv[]) {
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);
-    //glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
 
     // Load ImGui
@@ -104,6 +108,16 @@ int main(int argc, char *argv[]) {
     meshes.push_back(mesh::Mesh("assets/models/cube.obj"));
 
     camera::Camera camera(WIDTH, HEIGHT);
+
+    const std::vector<std::string> skybox_texture_paths({
+        "assets/textures/skybox/posx.jpg",
+        "assets/textures/skybox/negx.jpg",
+        "assets/textures/skybox/posy.jpg",
+        "assets/textures/skybox/negy.jpg",
+        "assets/textures/skybox/posz.jpg",
+        "assets/textures/skybox/negz.jpg"
+    });
+    skybox::Skybox skybox(skybox_texture_paths, "assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl");
 
     typedef std::chrono::high_resolution_clock Clock;
     simple_timer::SimpleTimer frame_timer;
@@ -205,17 +219,15 @@ int main(int argc, char *argv[]) {
         glClearColor(0.0f, 0.5f, 1.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Meshes
         shader.use();
 
         glm::mat4 proj = camera.get_perspective_matrix();
         shader.set_mat4("perspective", proj);
-
         glm::mat4 view = camera.get_view_matrix(interp);
         shader.set_mat4("view", view);
-
         glm::vec3 light = glm::vec3(2.4f, 2.4f, -1.7f);
         shader.set_vec3("u_light", light);
-
         shader.set_float("time", (float) time_elapsed);
 
         for (auto mesh : meshes) {
@@ -226,7 +238,10 @@ int main(int argc, char *argv[]) {
             mesh.draw(shader);
         }
 
-        // Debug GUI rendering
+        // Skybox
+        skybox.draw(proj, view);
+
+        // Debug GUI
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();

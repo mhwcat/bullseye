@@ -28,6 +28,7 @@ namespace bullseye::camera {
 
             glm::mat4 get_perspective_matrix();
             glm::mat4 get_view_matrix(float interp);
+            glm::mat4 get_skybox_matrix();
             const glm::vec3* get_position();
             const float get_pitch();
             const float get_yaw();

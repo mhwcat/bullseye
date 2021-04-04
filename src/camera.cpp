@@ -142,6 +142,13 @@ namespace bullseye::camera {
         return glm::lookAt(interpolated_pos, (interpolated_pos + front), up);
     }
 
+    glm::mat4 Camera::get_skybox_matrix() {
+        glm::mat4 per = glm::perspective(FOV, aspect_ratio, Z_NEAR, Z_FAR);
+        glm::mat4 view = glm::lookAt(glm::vec3(2.f, 0.f, -5.f), this->front, this->up);
+
+       return per * view;
+    }
+
     const glm::vec3* Camera::get_position() {
         return &this->position;
     }
