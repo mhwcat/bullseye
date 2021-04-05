@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 
 #include "SDL.h"
 #include "SDL_keycode.h"
@@ -21,6 +22,10 @@
 #include "mesh.h"
 #include "app_settings.h"
 #include "skybox.h"
+#include "gun.h"
+#include "math_utils.h"
+#include "entity.h"
+#include "consts.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -78,8 +83,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_FRONT);
     glEnable(GL_DEPTH_TEST);
 
     // Load ImGui
@@ -99,13 +104,21 @@ int main(int argc, char *argv[]) {
     logger::debug("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
         glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
-    shader::Shader shader("main");
-    shader.load_vertex_shader("assets/shaders/vertex.glsl");
-    shader.load_fragment_shader("assets/shaders/fragment.glsl");
-    shader.link_shaders();   
+    shader::Shader light_cube_shader("lightcube");
+    light_cube_shader.load_vertex_shader("assets/shaders/light_cube_vert.glsl");
+    light_cube_shader.load_fragment_shader("assets/shaders/light_cube_frag.glsl");
+    light_cube_shader.link_shaders();    
 
-    std::vector<mesh::Mesh> meshes;
-    meshes.push_back(mesh::Mesh("assets/models/cube.obj"));
+    entity::Entity box("box", glm::vec3(0.f, 0.f, -5.f));
+    box.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
+    box.add_shader("main_shader", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
+    box.map_mesh_to_shader("box_mesh", "main_shader");
+
+    std::vector<entity::Entity> entities;
+    entities.push_back(box);
+
+    std::vector<mesh::Mesh> light_cubes;
+    light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
 
     camera::Camera camera(WIDTH, HEIGHT);
 
@@ -118,6 +131,8 @@ int main(int argc, char *argv[]) {
         "assets/textures/skybox/negz.jpg"
     });
     skybox::Skybox skybox(skybox_texture_paths, "assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl");
+
+    gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
     typedef std::chrono::high_resolution_clock Clock;
     simple_timer::SimpleTimer frame_timer;
@@ -193,6 +208,11 @@ int main(int argc, char *argv[]) {
                         camera.process_mouse_input((float) event.motion.xrel, (float) -event.motion.yrel);
                     }
                     break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if (event.button.button == SDL_BUTTON_LEFT) {
+                        gun.shoot();
+                    }
+                    break;
             }
 
             ImGui_ImplSDL2_ProcessEvent(&event);
@@ -204,6 +224,7 @@ int main(int argc, char *argv[]) {
         // ===== Logic update
         while(accumulator >= dt) {
             camera.update(dt / 1000000.f);
+            gun.update(dt / 1000000.f);
 
             time_elapsed += dt;
             accumulator -= dt;
@@ -219,23 +240,29 @@ int main(int argc, char *argv[]) {
         glClearColor(0.0f, 0.5f, 1.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Meshes
-        shader.use();
-
         glm::mat4 proj = camera.get_perspective_matrix();
-        shader.set_mat4("perspective", proj);
         glm::mat4 view = camera.get_view_matrix(interp);
-        shader.set_mat4("view", view);
-        glm::vec3 light = glm::vec3(2.4f, 2.4f, -1.7f);
-        shader.set_vec3("u_light", light);
-        shader.set_float("time", (float) time_elapsed);
+        uint64_t movement = time_elapsed / 10000;
 
-        for (auto mesh : meshes) {
+        glm::vec3 light = glm::vec3(sin(math_utils::to_radians(movement)), 0.f, -2.f);
+
+        gun.draw(proj, view);
+
+        for (auto &entity : entities) {
+            entity.draw(camera, light, interp);
+        }
+
+        light_cube_shader.use();
+        light_cube_shader.set_mat4("projection", proj);
+        light_cube_shader.set_mat4("view", view);
+
+        for (auto &light_cube_mesh : light_cubes) {
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(0.f, 0.f, -5.f));
-            shader.set_mat4("model", model);
+            model = glm::translate(model, light);
+            model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+            light_cube_shader.set_mat4("model", model);
 
-            mesh.draw(shader);
+            light_cube_mesh.draw_light_cube(light_cube_shader); 
         }
 
         // Skybox
@@ -271,11 +298,16 @@ int main(int argc, char *argv[]) {
 
 
     // Cleanup
-    for (auto mesh : meshes) {
-        mesh.unload();
+    for (auto &entity : entities) {
+        entity.unload();
     }
 
-    shader.delete_program();
+    for (auto light_cube_mesh : light_cubes) {
+        light_cube_mesh.unload();
+    }
+
+    gun.unload();
+
     skybox.unload();
 
     logger::debug("Shutting down ImGui");

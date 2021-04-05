@@ -1,22 +1,19 @@
 #version 430 core
 
-in vec3 position;
-in vec3 normal;
-//in vec2 tex_coords;
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec3 in_normal;
 
-out vec3 v_position;
-out vec3 v_normal;
-//out vec2 v_tex_coords;
+out vec3 fragment_position;
+out vec3 normal;
 
-uniform mat4 perspective;
-uniform mat4 view;
 uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
-
-void main() {
-    mat4 model_view = view * model;
-    v_normal = transpose(inverse(mat3(model_view))) * normal;
-    gl_Position = perspective * model_view * vec4(position, 1.0);
-    v_position = gl_Position.xyz / gl_Position.w;
-    //v_tex_coords = tex_coords;
+void main()
+{
+    fragment_position = vec3(model * vec4(in_position, 1.0));
+    normal = mat3(transpose(inverse(model))) * in_normal;  
+    
+    gl_Position = projection * view * vec4(fragment_position, 1.0);
 }

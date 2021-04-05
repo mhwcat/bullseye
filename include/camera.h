@@ -7,7 +7,7 @@
 
 namespace bullseye::camera {
     const float FOV                         = 45.f;
-    const float Z_NEAR                      = 0.1f;
+    const float Z_NEAR                      = 0.01f;
     const float Z_FAR                       = 1000.f;
     const float DEFAULT_MOVEMENT_SPEED      = 10.f;
 

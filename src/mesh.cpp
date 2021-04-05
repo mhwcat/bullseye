@@ -9,27 +9,47 @@
 #include "logger.h"
 
 namespace bullseye::mesh {
-    Mesh::Mesh(std::string path) {
+    Mesh::Mesh(std::string name, std::string path) {
+        this->name = name;
 
         load_obj_file(path);
         setup_mesh();
     }
 
+    Mesh::Mesh(std::string name, const float* vertices, uint32_t vertices_len) {
+        this->name = name;
+
+        load_and_setup_vertices(vertices, vertices_len);
+    }
+
+    void Mesh::load_and_setup_vertices(const float* vertices, uint32_t vertices_len) {
+        glGenVertexArrays(1, &this->vao);
+        glGenBuffers(1, &this->vbo);
+
+        glBindVertexArray(this->vao);
+        glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertices_len * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+
+        glBindVertexArray(0);
+    }
+
     void Mesh::load_obj_file(std::string path) {
         tinyobj::ObjReaderConfig reader_config;
-        reader_config.mtl_search_path = "./";
+        reader_config.mtl_search_path = "assets/models/";
 
         tinyobj::ObjReader reader;
 
         if (!reader.ParseFromFile(path, reader_config)) {
             if (!reader.Error().empty()) {
-                logger::error("TinyObjReader error: %s", reader.Error());
+                logger::error("TinyObjReader error: %s", reader.Error().c_str());
             }
-            return;
         }
 
         if (!reader.Warning().empty()) {
-            logger::warn("TinyObjReader warning: %s", reader.Warning());
+            logger::warn("TinyObjReader warning: %s", reader.Warning().c_str());
         }
 
         auto& attrib = reader.GetAttrib();
@@ -100,8 +120,20 @@ namespace bullseye::mesh {
         glBindVertexArray(0);
     }
 
+    void Mesh::draw_light_cube(shader::Shader& shader) {
+        glBindVertexArray(this->vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+    }
+
     void Mesh::unload() {
+        logger::debug("Unloading mesh [name=%s]", this->name.c_str());
+
         glDeleteVertexArrays(1, &this->vao);
         glDeleteBuffers(1, &this->vbo);
+    }
+
+    const char* Mesh::get_name() {
+        return this->name.c_str();
     }
 }
