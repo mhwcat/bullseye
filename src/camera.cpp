@@ -3,8 +3,8 @@
 #include "math_utils.h"
 #include "logger.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include <cmath>
 #include <SDL.h>
 

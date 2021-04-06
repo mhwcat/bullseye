@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-#include <glad/glad.h>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glad/glad.h"
+#include "glm/gtc/matrix_transform.hpp"
 #include "tobjl/tiny_obj_loader.h"
 
 #include "logger.h"

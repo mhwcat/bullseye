@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 #include "mesh.h"
 #include "shader.h"
@@ -23,6 +23,8 @@ namespace bullseye::entity {
             void update(float delta_time);
             void draw(camera::Camera& camera, glm::vec3 light_pos, float interp);
             virtual void unload();
+
+            const char* get_name();
         private:
             std::string name;
             std::unordered_map<std::string, mesh::Mesh*> meshes;

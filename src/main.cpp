@@ -3,13 +3,13 @@
 #include <cstring>
 #include <cmath>
 
-#include "SDL.h"
-#include "SDL_keycode.h"
-#include "glad/glad.h"
+#include <SDL.h>
+#include <SDL_keycode.h>
+#include "glad/glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/backends/imgui_impl_sdl.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 
 // @TODO: Move this somewhere
 #define STB_IMAGE_IMPLEMENTATION
@@ -35,7 +35,7 @@ using namespace bullseye;
 int main(int argc, char *argv[]) {
     logger::info("Starting Bullseye");
 
-    app_settings::AppSettings app_settings { .camera_mouse_attached = false, .camera_free_fly = true };
+    app_settings::AppSettings app_settings { false,  true };
 
     logger::debug("Initializing SDL");
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -83,8 +83,8 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    //glEnable(GL_CULL_FACE);
-    //glCullFace(GL_FRONT);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
     glEnable(GL_DEPTH_TEST);
 
     // Load ImGui
@@ -114,8 +114,14 @@ int main(int argc, char *argv[]) {
     box.add_shader("main_shader", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
     box.map_mesh_to_shader("box_mesh", "main_shader");
 
+    entity::Entity box2("box2", glm::vec3(10.f, 3.f, -2.f));
+    box2.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
+    box2.add_shader("main_shader", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
+    box2.map_mesh_to_shader("box_mesh", "main_shader");
+
     std::vector<entity::Entity> entities;
     entities.push_back(box);
+    entities.push_back(box2);
 
     std::vector<mesh::Mesh> light_cubes;
     light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
@@ -133,6 +139,12 @@ int main(int argc, char *argv[]) {
     skybox::Skybox skybox(skybox_texture_paths, "assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl");
 
     gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
+
+    const char* entities_names[64];
+    for (int i = 0; i < entities.size(); i++) {
+        entities_names[i] = entities[i].get_name();
+    }
+    static int listbox_item_current = 1;
 
     typedef std::chrono::high_resolution_clock Clock;
     simple_timer::SimpleTimer frame_timer;
@@ -209,6 +221,11 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    // Discard click event if processed by ImGui
+                    if (ImGui::GetIO().WantCaptureMouse) {
+                        break;
+                    }
+
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         gun.shoot();
                     }
@@ -268,7 +285,8 @@ int main(int argc, char *argv[]) {
         // Skybox
         skybox.draw(proj, view);
 
-        // Debug GUI
+        // Debug GUI 
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
@@ -287,6 +305,11 @@ int main(int argc, char *argv[]) {
         ImGui::Spacing();
         ImGui::Checkbox("Locked", &app_settings.camera_mouse_attached);
         ImGui::Checkbox("Free fly", &app_settings.camera_free_fly);
+        ImGui::End();
+        ImGui::Begin("Entities");
+        //ImGui::ListBoxHeader("World entities");
+        ImGui::PushItemWidth(-1);
+        ImGui::ListBox("oi chuj tu chodzi", &listbox_item_current, entities_names, entities.size());
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

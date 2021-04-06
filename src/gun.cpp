@@ -5,9 +5,9 @@
 #include "math_utils.h"
 
 #include <string>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glad/glad.h>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glad/glad.h"
 
 namespace bullseye::gun {
     Gun::Gun(std::string model_path, std::string vertex_shader_path, std::string fragment_shader_path) {

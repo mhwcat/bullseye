@@ -3,7 +3,7 @@
 
 #include "app_settings.h"
 
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 namespace bullseye::camera {
     const float FOV                         = 45.f;

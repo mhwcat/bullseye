@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/gtc/matrix_transform.hpp"
 
 namespace bullseye::entity {
     Entity::Entity(std::string name, glm::vec3 position) {
@@ -92,5 +92,9 @@ namespace bullseye::entity {
         }
 
         this->shaders.clear();
+    }
+
+    const char* Entity::get_name() {
+        return this->name.c_str();
     }
 }

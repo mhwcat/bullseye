@@ -1,7 +1,7 @@
 #ifndef BULLSEYE_MATH_UTILS_H
 #define BULLSEYE_MATH_UTILS_H
 
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 #define PI_VAL 3.141592653589793238f
 

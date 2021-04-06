@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <stb/stb_image.h>
-#include <glad/glad.h>
+#include "glad/glad.h"
 
 #include "logger.h"
 #include "shader.h"
