@@ -55,6 +55,10 @@ namespace bullseye::shader {
         return *this->shaders.at(name);
     }
 
+    void ShaderManager::set_vec2(const std::string &name, const std::string &uniform_name, const glm::vec2 &value) {
+        this->shaders.at(name)->set_vec2(uniform_name, value);
+    }
+
     void ShaderManager::set_vec3(const std::string &name, const std::string &uniform_name, const glm::vec3 &value) {
         this->shaders.at(name)->set_vec3(uniform_name, value);
     }

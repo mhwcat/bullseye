@@ -19,6 +19,7 @@ namespace bullseye::shader {
 
             Shader& get_shader(const std::string &name);
             void use_shader(const std::string &name);
+            void set_vec2(const std::string &name, const std::string &uniform_name, const glm::vec2 &value);
             void set_vec3(const std::string &name, const std::string &uniform_name, const glm::vec3 &value);
             void set_mat4(const std::string &name, const std::string &uniform_name, const glm::mat4 &value);
         private:

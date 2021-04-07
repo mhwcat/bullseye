@@ -27,6 +27,7 @@
 #include "math_utils.h"
 #include "entity.h"
 #include "consts.h"
+#include "hud.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -109,6 +110,7 @@ int main(int argc, char *argv[]) {
     shader_manager.load_shader("lightcube", "assets/shaders/light_cube_vert.glsl", "assets/shaders/light_cube_frag.glsl");
     shader_manager.load_shader("main", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
     shader_manager.load_shader("gun", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
+    shader_manager.load_shader("crosshair", "assets/shaders/crosshair_vert.glsl", "assets/shaders/crosshair_frag.glsl");
 
     entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f));
     plane.add_mesh_from_file("plane_mesh", "assets/models/plane.obj", glm::vec3(2.f));
@@ -139,6 +141,8 @@ int main(int argc, char *argv[]) {
         "assets/textures/skybox/negz.jpg"
     });
     skybox::Skybox skybox(skybox_texture_paths, "assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl");
+
+    hud::Hud hud;
 
     //entity::gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
@@ -281,7 +285,13 @@ int main(int argc, char *argv[]) {
             shader_manager.set_vec3("main", "light_pos", light);
             shader_manager.set_vec3("main", "view_pos", *camera.get_position());
             shader_manager.set_vec3("main", "light_color", glm::vec3(1.f, 1.f, 1.f));
-            shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f));  
+
+            if (strcmp(entity.get_name(), "plane") == 0) {
+                shader_manager.set_vec3("main", "object_color", glm::vec3(0.9f, 0.5f, 0.1f));
+            }
+            else {
+                shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f));
+            }
 
             entity.draw(shader_manager.get_shader("main"), interp);
         }
@@ -300,6 +310,12 @@ int main(int argc, char *argv[]) {
 
         // Skybox
         skybox.draw(proj, view);
+
+        // HUD
+        shader_manager.use_shader("crosshair");
+        shader_manager.set_mat4("crosshair", "projection", proj);      
+        shader_manager.set_vec2("crosshair", "resolution", glm::vec2(WIDTH, HEIGHT));   
+        hud.draw();
 
         // Debug GUI 
         ImGui_ImplOpenGL3_NewFrame();
