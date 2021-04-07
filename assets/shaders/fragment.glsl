@@ -13,8 +13,8 @@ uniform vec3 light_color;
 uniform vec3 object_color;
 //uniform sampler2D tex;
 
-const float ambient_strength = 0.2;
-const float specular_strength = 0.8;
+const float ambient_strength = 0.3;
+const float specular_strength = 0.6;
 
 void main() {
     vec3 ambient = ambient_strength * light_color;

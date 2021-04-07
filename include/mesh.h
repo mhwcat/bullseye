@@ -27,18 +27,20 @@ namespace bullseye::mesh {
             std::vector<Texture> textures;
             uint32_t vao;
             uint32_t vbo;
+            glm::vec3 scale;
 
             void load_obj_file(std::string path);
             void load_and_setup_vertices(const float* vertices, uint32_t vertices_len);
             void setup_mesh();
             
         public:
-            Mesh(std::string name, std::string path);
+            Mesh(std::string name, std::string path, glm::vec3 scale = glm::vec3(1.f));
             Mesh(std::string name, const float* vertices, uint32_t vertices_len);
             void draw(shader::Shader& shader);
-            void draw_light_cube(shader::Shader& shader);
+            void draw_light_cube();
             void unload();
             const char* get_name();
+            void rescale(glm::vec3 scale);
     };
 }
 

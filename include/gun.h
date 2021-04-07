@@ -6,9 +6,10 @@
 
 #include "mesh.h"
 #include "shader.h"
+#include "entity.h"
 
-namespace bullseye::gun {
-    const float SHOOT_ANIM_MAX_BACK_VAL = -1.5f;
+namespace bullseye::entity::gun {
+    const float SHOOT_ANIM_MAX_BACK_VAL = -0.035f;
     
     enum class GunState{
         IDLE, SHOOTING, RELOADING
@@ -18,19 +19,14 @@ namespace bullseye::gun {
         IDLE, BACKING, RETURNING
     };
 
-    class Gun {
+    class Gun : public Entity {
         public:
-            Gun(std::string model_path, std::string vertex_shader_path, std::string fragment_shader_path);
+            Gun();
 
             void shoot();
-            void update(float delta_time);
-            void draw(glm::mat4 projection, glm::mat4 view);
-            void unload();
+            virtual void update(float delta_time);
+            void draw(shader::Shader& shader, float interp);
         private:
-            mesh::Mesh* mesh;
-            shader::Shader* shader;
-            mesh::Mesh* projectile;
-
             glm::vec3 relative_position;
             GunState gun_state;
             GunAnimState gun_anim_state;

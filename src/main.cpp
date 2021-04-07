@@ -17,6 +17,7 @@
 
 #include "logger.h"
 #include "shader.h"
+#include "shader_manager.h"
 #include "camera.h"
 #include "simple_timer.h"
 #include "mesh.h"
@@ -104,24 +105,25 @@ int main(int argc, char *argv[]) {
     logger::debug("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
         glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
-    shader::Shader light_cube_shader("lightcube");
-    light_cube_shader.load_vertex_shader("assets/shaders/light_cube_vert.glsl");
-    light_cube_shader.load_fragment_shader("assets/shaders/light_cube_frag.glsl");
-    light_cube_shader.link_shaders();    
+    shader::ShaderManager shader_manager;
+    shader_manager.load_shader("lightcube", "assets/shaders/light_cube_vert.glsl", "assets/shaders/light_cube_frag.glsl");
+    shader_manager.load_shader("main", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
+    shader_manager.load_shader("gun", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
+    entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f));
+    plane.add_mesh_from_file("plane_mesh", "assets/models/plane.obj", glm::vec3(2.f));
     entity::Entity box("box", glm::vec3(0.f, 0.f, -5.f));
     box.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
-    box.add_shader("main_shader", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-    box.map_mesh_to_shader("box_mesh", "main_shader");
-
     entity::Entity box2("box2", glm::vec3(10.f, 3.f, -2.f));
     box2.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
-    box2.add_shader("main_shader", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
-    box2.map_mesh_to_shader("box_mesh", "main_shader");
+
+    entity::gun::Gun gun;
+    gun.add_mesh_from_file("gun_mesh", "assets/models/M4A1.obj", glm::vec3(0.016f, 0.016f, 0.016f));
 
     std::vector<entity::Entity> entities;
     entities.push_back(box);
     entities.push_back(box2);
+    entities.push_back(plane);
 
     std::vector<mesh::Mesh> light_cubes;
     light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
@@ -138,7 +140,7 @@ int main(int argc, char *argv[]) {
     });
     skybox::Skybox skybox(skybox_texture_paths, "assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl");
 
-    gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
+    //entity::gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
     const char* entities_names[64];
     for (int i = 0; i < entities.size(); i++) {
@@ -263,30 +265,43 @@ int main(int argc, char *argv[]) {
 
         glm::vec3 light = glm::vec3(sin(math_utils::to_radians(movement)), 0.f, -2.f);
 
-        gun.draw(proj, view);
+        shader_manager.use_shader("gun");
+        shader_manager.set_mat4("gun", "projection", proj);
+        shader_manager.set_mat4("gun", "view", view);
+        shader_manager.set_vec3("gun", "light_pos", light);
+        shader_manager.set_vec3("gun", "view_pos", *camera.get_position());
+        shader_manager.set_vec3("gun", "light_color", glm::vec3(1.f, 1.f, 1.f));
+        shader_manager.set_vec3("gun", "object_color", glm::vec3(0.1f, 0.1f, 0.1f));  
+        gun.draw(shader_manager.get_shader("gun"), interp);
 
         for (auto &entity : entities) {
-            entity.draw(camera, light, interp);
+            shader_manager.use_shader("main");
+            shader_manager.set_mat4("main", "projection", proj);
+            shader_manager.set_mat4("main", "view", view);
+            shader_manager.set_vec3("main", "light_pos", light);
+            shader_manager.set_vec3("main", "view_pos", *camera.get_position());
+            shader_manager.set_vec3("main", "light_color", glm::vec3(1.f, 1.f, 1.f));
+            shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f));  
+
+            entity.draw(shader_manager.get_shader("main"), interp);
         }
 
-        light_cube_shader.use();
-        light_cube_shader.set_mat4("projection", proj);
-        light_cube_shader.set_mat4("view", view);
-
+        shader_manager.use_shader("lightcube");
+        shader_manager.set_mat4("lightcube", "projection", proj);
+        shader_manager.set_mat4("lightcube", "view", view);
         for (auto &light_cube_mesh : light_cubes) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, light);
             model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-            light_cube_shader.set_mat4("model", model);
+            shader_manager.set_mat4("lightcube", "model", model);
 
-            light_cube_mesh.draw_light_cube(light_cube_shader); 
+            light_cube_mesh.draw_light_cube(); 
         }
 
         // Skybox
         skybox.draw(proj, view);
 
         // Debug GUI 
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
@@ -307,9 +322,9 @@ int main(int argc, char *argv[]) {
         ImGui::Checkbox("Free fly", &app_settings.camera_free_fly);
         ImGui::End();
         ImGui::Begin("Entities");
-        //ImGui::ListBoxHeader("World entities");
         ImGui::PushItemWidth(-1);
-        ImGui::ListBox("oi chuj tu chodzi", &listbox_item_current, entities_names, entities.size());
+        ImGui::ListBox("", &listbox_item_current, entities_names, entities.size());
+        ImGui::Separator();
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -319,8 +334,9 @@ int main(int argc, char *argv[]) {
         last_render_time = frame_timer.get_microseconds_since_start() / 1000.f;
     }
 
-
     // Cleanup
+    shader_manager.unload();
+
     for (auto &entity : entities) {
         entity.unload();
     }

@@ -9,8 +9,9 @@
 #include "logger.h"
 
 namespace bullseye::mesh {
-    Mesh::Mesh(std::string name, std::string path) {
+    Mesh::Mesh(std::string name, std::string path, glm::vec3 scale) {
         this->name = name;
+        this->scale = scale;
 
         load_obj_file(path);
         setup_mesh();
@@ -18,6 +19,7 @@ namespace bullseye::mesh {
 
     Mesh::Mesh(std::string name, const float* vertices, uint32_t vertices_len) {
         this->name = name;
+        this->scale = glm::vec3(1.f);
 
         load_and_setup_vertices(vertices, vertices_len);
     }
@@ -59,7 +61,9 @@ namespace bullseye::mesh {
         for (const auto& shape : shapes) {
             for (const auto& index : shape.mesh.indices) {
                 mesh::Vertex vertex{};
-                vertex.position = glm::vec3(attrib.vertices[3 * index.vertex_index + 0], attrib.vertices[3 * index.vertex_index + 1], -attrib.vertices[3 * index.vertex_index + 2]);
+                vertex.position = glm::vec3(attrib.vertices[3 * index.vertex_index + 0] * this->scale.x, 
+                    attrib.vertices[3 * index.vertex_index + 1] * this->scale.y, 
+                    -attrib.vertices[3 * index.vertex_index + 2] * this->scale.z);
                 if (index.normal_index >= 0) {
                     tinyobj::real_t nx = attrib.normals[3 * index.normal_index + 0];
                     tinyobj::real_t ny = attrib.normals[3 * index.normal_index + 1];
@@ -120,7 +124,7 @@ namespace bullseye::mesh {
         glBindVertexArray(0);
     }
 
-    void Mesh::draw_light_cube(shader::Shader& shader) {
+    void Mesh::draw_light_cube() {
         glBindVertexArray(this->vao);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
