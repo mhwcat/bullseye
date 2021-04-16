@@ -2,8 +2,7 @@
 
 in vec3 normal;
 in vec3 fragment_position;
-
-//in vec2 v_tex_coords;
+in vec2 tex_coords;
 
 out vec4 color;
 
@@ -11,7 +10,7 @@ uniform vec3 light_pos;
 uniform vec3 view_pos;
 uniform vec3 light_color;
 uniform vec3 object_color;
-//uniform sampler2D tex;
+uniform sampler2D texture_diffuse1;
 
 const float ambient_strength = 0.3;
 const float specular_strength = 0.6;
@@ -31,5 +30,7 @@ void main() {
 
     vec3 final = (ambient + diffuse + specular) * object_color;
 
-    color = vec4(final, 1.0);    
+    //color = vec4(final, 1.0); 
+    vec3 final2 = (ambient + diffuse + specular) * vec3(texture(texture_diffuse1, tex_coords));
+    color = vec4(final2, 1.0);   
 }

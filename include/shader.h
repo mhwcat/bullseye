@@ -30,6 +30,7 @@ namespace bullseye::shader {
         void set_float(const std::string &name, float value);
         void set_vec3(const std::string &name, const glm::vec3 &value);
         void set_mat4(const std::string &name, const glm::mat4 &value);
+        uint32_t get_id();
     };
 }
 

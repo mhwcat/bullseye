@@ -63,4 +63,7 @@ namespace bullseye::shader {
         this->shaders.at(name)->set_mat4(uniform_name, value);
     }
 
+    void ShaderManager::set_float(const std::string &name, const std::string &uniform_name, const float value) {
+        this->shaders.at(name)->set_float(uniform_name, value);
+    }
 }

@@ -21,6 +21,8 @@ namespace bullseye::shader {
             void use_shader(const std::string &name);
             void set_vec3(const std::string &name, const std::string &uniform_name, const glm::vec3 &value);
             void set_mat4(const std::string &name, const std::string &uniform_name, const glm::mat4 &value);
+            void set_float(const std::string &name, const std::string &uniform_name, const float value);
+
         private:
             std::unordered_map<std::string, Shader*> shaders;
     };

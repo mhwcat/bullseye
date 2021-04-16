@@ -123,5 +123,9 @@ namespace bullseye::shader {
     void Shader::set_mat4(const std::string &name, const glm::mat4 &value) {
         glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, &value[0][0]);
     }
+
+    uint32_t Shader::get_id() {
+        return this->id;
+    }
 }
 

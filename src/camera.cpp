@@ -10,15 +10,15 @@
 
 namespace bullseye::camera {
     Camera::Camera(uint32_t screen_width, uint32_t screen_height) {
-        position = glm::vec3(0.f, 0.f, 0.f);
+        position = glm::vec3(-10.f, 0.f, 4.f);
         previous_position = glm::vec3(0.f, 0.f, 0.f);
 
         up = glm::vec3(0.0f, 1.0f, 0.0f);
         front = glm::vec3(0.0f, 0.0f, -1.0f);
         right = glm::vec3(1.0f, 0.0f, 0.0f);
         world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-        yaw = -90.0f;
-        pitch = 0.0f;
+        yaw = 0.f;
+        pitch = 0.f;
 
         movement_speed = DEFAULT_MOVEMENT_SPEED;
         movement_direction = NONE;

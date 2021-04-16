@@ -70,7 +70,11 @@ namespace bullseye::mesh {
                     tinyobj::real_t nz = attrib.normals[3 * index.normal_index + 2];
 
                     vertex.normal = glm::vec3(nx, ny, nz);
-                    vertex.texture_coords = glm::vec3(0); // @TODO: Implement texture coords
+                }
+                if (index.texcoord_index >= 0) {
+                    vertex.texture_coords = glm::vec2(attrib.texcoords[2 * index.texcoord_index + 0], attrib.texcoords[2 * index.texcoord_index + 1]);
+                } else {
+                    vertex.texture_coords = glm::vec2(0.f);
                 }
 
                 this->vertices.push_back(vertex);
@@ -104,21 +108,13 @@ namespace bullseye::mesh {
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, normal));
 
         // tex coords
-        // glEnableVertexAttribArray(2);
-        // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texture_coords));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) offsetof(Vertex, texture_coords));
         
         glBindVertexArray(0); 
     }
 
     void Mesh::draw(shader::Shader &shader) {
-        // @TODO: Implement textures
-        // uint32_t diffuse_num = 1;
-        // uint32_t specular_num = 1;
-
-        // for (uint32_t i = 0; i < textures.size(); i++) {
-        //     glActive
-        // }
-
         glBindVertexArray(this->vao);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);

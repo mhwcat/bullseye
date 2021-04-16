@@ -23,6 +23,8 @@ namespace bullseye::entity {
             virtual void unload();
 
             const char* get_name();
+            const glm::vec3& get_rotation();
+            void set_rotation_speed(glm::vec3 rotation_speed);
         protected:
             std::string name;
             std::unordered_map<std::string, mesh::Mesh*> meshes;
@@ -31,6 +33,8 @@ namespace bullseye::entity {
             glm::vec3 previous_position;
             glm::vec3 rotation;
             glm::vec3 previous_rotation;
+
+            glm::vec3 rotation_speed;
     };
 }
 

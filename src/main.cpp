@@ -27,6 +27,7 @@
 #include "math_utils.h"
 #include "entity.h"
 #include "consts.h"
+#include "texture_manager.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -36,7 +37,7 @@ using namespace bullseye;
 int main(int argc, char *argv[]) {
     logger::info("Starting Bullseye");
 
-    app_settings::AppSettings app_settings { false,  true };
+    app_settings::AppSettings app_settings { false,  false };
 
     logger::debug("Initializing SDL");
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     logger::debug("Initializing window");
-    SDL_Window* window = SDL_CreateWindow("Bullseye", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window* window = SDL_CreateWindow("$$$ Cartel Birthday $$$", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL) {
         logger::error("Failed initializing window! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
@@ -110,8 +111,12 @@ int main(int argc, char *argv[]) {
     shader_manager.load_shader("main", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
     shader_manager.load_shader("gun", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
+    texture::TextureManager texture_manager;
+    texture_manager.load_texture("grass", "assets/textures/grass.jpg");
+
     entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f));
     plane.add_mesh_from_file("plane_mesh", "assets/models/plane.obj", glm::vec3(2.f));
+
     entity::Entity box("box", glm::vec3(0.f, 0.f, -5.f));
     box.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
     entity::Entity box2("box2", glm::vec3(10.f, 3.f, -2.f));
@@ -121,11 +126,12 @@ int main(int argc, char *argv[]) {
     gun.add_mesh_from_file("gun_mesh", "assets/models/M4A1.obj", glm::vec3(0.016f, 0.016f, 0.016f));
 
     std::vector<entity::Entity> entities;
-    entities.push_back(box);
-    entities.push_back(box2);
-    entities.push_back(plane);
+    entities.push_back(std::move(box));
+    entities.push_back(std::move(box2));
+    entities.push_back(std::move(plane));
 
     std::vector<mesh::Mesh> light_cubes;
+    light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
     light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
 
     camera::Camera camera(WIDTH, HEIGHT);
@@ -244,6 +250,10 @@ int main(int argc, char *argv[]) {
         while(accumulator >= dt) {
             camera.update(dt / 1000000.f);
             gun.update(dt / 1000000.f);
+            
+            for (auto &entity : entities) {
+                entity.update(dt / 1000000.f);
+            }
 
             time_elapsed += dt;
             accumulator -= dt;
@@ -263,7 +273,7 @@ int main(int argc, char *argv[]) {
         glm::mat4 view = camera.get_view_matrix(interp);
         uint64_t movement = time_elapsed / 10000;
 
-        glm::vec3 light = glm::vec3(sin(math_utils::to_radians(movement)), 0.f, -2.f);
+        glm::vec3 light = glm::vec3(9.f, 4.5f, (5.f * sin(math_utils::to_radians(movement)) + 2.f));
 
         shader_manager.use_shader("gun");
         shader_manager.set_mat4("gun", "projection", proj);
@@ -275,13 +285,17 @@ int main(int argc, char *argv[]) {
         gun.draw(shader_manager.get_shader("gun"), interp);
 
         for (auto &entity : entities) {
+            if (strcmp(entity.get_name(), "plane") == 0) {
+                texture_manager.use_texture("grass", shader_manager.get_shader("main").get_id());
+            }
+
             shader_manager.use_shader("main");
             shader_manager.set_mat4("main", "projection", proj);
             shader_manager.set_mat4("main", "view", view);
             shader_manager.set_vec3("main", "light_pos", light);
             shader_manager.set_vec3("main", "view_pos", *camera.get_position());
             shader_manager.set_vec3("main", "light_color", glm::vec3(1.f, 1.f, 1.f));
-            shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f));  
+            shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f)); 
 
             entity.draw(shader_manager.get_shader("main"), interp);
         }
@@ -318,8 +332,8 @@ int main(int argc, char *argv[]) {
         ImGui::Text("Yaw: %.2f", camera.get_yaw());
         ImGui::Text("Pitch: %.2f", camera.get_pitch());
         ImGui::Spacing();
-        ImGui::Checkbox("Locked", &app_settings.camera_mouse_attached);
-        ImGui::Checkbox("Free fly", &app_settings.camera_free_fly);
+        ImGui::Checkbox("Locked [C]", &app_settings.camera_mouse_attached);
+        ImGui::Checkbox("Free fly [F]", &app_settings.camera_free_fly);
         ImGui::End();
         ImGui::Begin("Entities");
         ImGui::PushItemWidth(-1);
@@ -336,6 +350,7 @@ int main(int argc, char *argv[]) {
 
     // Cleanup
     shader_manager.unload();
+    texture_manager.unload();
 
     for (auto &entity : entities) {
         entity.unload();
