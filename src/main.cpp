@@ -15,6 +15,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include "reactphysics3d/include/reactphysics3d/reactphysics3d.h"
+
 #include "logger.h"
 #include "shader.h"
 #include "shader_manager.h"
@@ -57,7 +59,7 @@ int main(int argc, char *argv[]) {
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     logger::debug("Initializing window");
-    SDL_Window* window = SDL_CreateWindow("$$$ Cartel Birthday $$$", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window* window = SDL_CreateWindow("Bullseye", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL) {
         logger::error("Failed initializing window! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
@@ -156,6 +158,10 @@ int main(int argc, char *argv[]) {
 
     typedef std::chrono::high_resolution_clock Clock;
     simple_timer::SimpleTimer frame_timer;
+
+    rp3d::PhysicsCommon physicsCommon;
+    // Create a physics world 
+    rp3d::PhysicsWorld* world = physicsCommon.createPhysicsWorld();
 
     // Time between updates in microseconds
     const uint64_t dt = static_cast<const uint64_t>(1 * 1000);

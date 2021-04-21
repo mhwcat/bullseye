@@ -11,6 +11,7 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 set(IMGUI_VERSION "1.82")
 set(GLM_VERSION "0.9.9.8")
 set(TOBJ_VERSION "2.0.0")
+set(REACTPHYSICS3D_VERSION "0.80")
 
 # External libs provided by CMake modules
 find_package(SDL2 REQUIRED)
@@ -18,6 +19,7 @@ find_package(OpenGL REQUIRED)
 
 # External libs sources 
 add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/glm) # GLM fortunately has its own CMake project, so we can just include and link it
+add_subdirectory(${PROJECT_SOURCE_DIR}/3rdparty/reactphysics3d) # Same with Bullet 
 set(GLAD_HEADERS 3rdparty/glad/glad/glad.h 3rdparty/glad/KHR/khrplatform.h)
 set(GLAD_SOURCES 3rdparty/glad/glad.c)
 set(IMGUI_HEADERS 3rdparty/imgui/imconfig.h 3rdparty/imgui/imgui_internal.h 3rdparty/imgui/imgui.h 3rdparty/imgui/imstb_rectpack.h 3rdparty/imgui/imstb_textedit.h 
@@ -51,6 +53,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/tobjl)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/glad)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb)
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/reactphysics3d/include)
 
-target_link_libraries(${PROJECT_NAME} glm SDL2::Main ${OPENGL_LIBRARIES} ${CMAKE_DL_LIBS})
+target_link_libraries(${PROJECT_NAME} glm reactphysics3d SDL2::Main ${OPENGL_LIBRARIES} ${CMAKE_DL_LIBS})
 target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
