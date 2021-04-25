@@ -5,6 +5,7 @@ namespace bullseye::app_settings {
     struct AppSettings {
         bool camera_mouse_attached;
         bool camera_free_fly;
+        bool physics_debug_draw;
     };
 }
 

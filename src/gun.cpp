@@ -8,9 +8,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glad/glad.h"
+#include "reactphysics3d/reactphysics3d.h"
 
 namespace bullseye::entity::gun {
-    Gun::Gun() : Entity("gun", glm::vec3(0.f, 0.f, 0.f)) {
+    Gun::Gun() : Entity("gun", glm::vec3(0.f, 0.f, 0.f), rp3d::Quaternion::identity(), BodyType::NO_PHYSICS) {
         this->relative_position = glm::vec3(0.f, 0.f, 0.f);
         this->gun_state = GunState::IDLE;
         this->gun_anim_state = GunAnimState::IDLE;

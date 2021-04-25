@@ -15,6 +15,7 @@ namespace bullseye::mesh {
 
         load_obj_file(path);
         setup_mesh();
+        calculate_bounding_box();
     }
 
     Mesh::Mesh(std::string name, const float* vertices, uint32_t vertices_len) {
@@ -114,6 +115,29 @@ namespace bullseye::mesh {
         glBindVertexArray(0); 
     }
 
+    void Mesh::calculate_bounding_box() {
+        float max_x, max_y, max_z;
+        max_x = this->vertices[0].position.x;
+        max_y = this->vertices[0].position.y;
+        max_z = this->vertices[0].position.z;
+
+        for (auto &vert : this->vertices) {
+            if (vert.position.x > max_x) {
+                max_x = vert.position.x;
+            }
+            if (vert.position.y > max_y) {
+                max_y = vert.position.y;
+            }
+            if (vert.position.z > max_z) {
+                max_z = vert.position.z;
+            }                        
+        }
+
+        logger::debug("Calculated bounding box for Mesh %s, max extents [x=%.2f, y=%.2f, z=%.2f]", this->name.c_str(), max_x, max_y, max_z);
+
+        this->extents = glm::vec3(max_x, max_y, max_z);
+    }
+
     void Mesh::draw(shader::Shader &shader) {
         glBindVertexArray(this->vao);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
@@ -135,5 +159,9 @@ namespace bullseye::mesh {
 
     const char* Mesh::get_name() {
         return this->name.c_str();
+    }
+
+    const glm::vec3& Mesh::get_extents() {
+        return this->extents;
     }
 }

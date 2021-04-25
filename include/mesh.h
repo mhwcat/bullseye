@@ -28,10 +28,12 @@ namespace bullseye::mesh {
             uint32_t vao;
             uint32_t vbo;
             glm::vec3 scale;
+            glm::vec3 extents;
 
             void load_obj_file(std::string path);
             void load_and_setup_vertices(const float* vertices, uint32_t vertices_len);
             void setup_mesh();
+            void calculate_bounding_box();
             
         public:
             Mesh(std::string name, std::string path, glm::vec3 scale = glm::vec3(1.f));
@@ -41,6 +43,7 @@ namespace bullseye::mesh {
             void unload();
             const char* get_name();
             void rescale(glm::vec3 scale);
+            const glm::vec3& get_extents();
     };
 }
 

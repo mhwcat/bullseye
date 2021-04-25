@@ -292,16 +292,16 @@ set_target_properties(reactphysics3d  PROPERTIES
 )
 
 # Install target (install library only, not headers)
-# install(TARGETS reactphysics3d
-#         EXPORT reactphysics3d-targets
-#         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-# )
+install(TARGETS reactphysics3d
+        EXPORT reactphysics3d-targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
-# # Install the headers separately (because INSTALL(TARGETS ... PUBLIC_HEADER DESTINATION ...) does
-# # not support subfolders
-# install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# Install the headers separately (because INSTALL(TARGETS ... PUBLIC_HEADER DESTINATION ...) does
+# not support subfolders
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # This is required so that the exported target has the name JSONUtils and not jsonutils
 set_target_properties(reactphysics3d PROPERTIES EXPORT_NAME ReactPhysics3D)
@@ -318,18 +318,18 @@ write_basic_package_version_file(
 
 # When the user runs "make install", this will export the targets into
 # a "ReactPhysics3DConfig.cmake" file in the install destination
-# install(EXPORT reactphysics3d-targets
-#     FILE
-#         ReactPhysics3DConfig.cmake
-#     NAMESPACE
-#         ReactPhysics3D::
-#     DESTINATION
-#         ${CMAKE_INSTALL_LIBDIR}/cmake/ReactPhysics3D
-# )
+install(EXPORT reactphysics3d-targets
+    FILE
+        ReactPhysics3DConfig.cmake
+    NAMESPACE
+        ReactPhysics3D::
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake/ReactPhysics3D
+)
 
-# # When the user runs "make install", this will copy the "ReactPhysics3DConfigVersion.cmake" file
-# # we have previously created into the install destination
-# install(FILES
-#     ${CMAKE_CURRENT_BINARY_DIR}/ReactPhysics3DConfigVersion.cmake
-#     DESTINATION lib/cmake/ReactPhysics3D
-# )
+# When the user runs "make install", this will copy the "ReactPhysics3DConfigVersion.cmake" file
+# we have previously created into the install destination
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/ReactPhysics3DConfigVersion.cmake
+    DESTINATION lib/cmake/ReactPhysics3D
+)

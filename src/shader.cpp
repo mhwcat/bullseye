@@ -120,8 +120,22 @@ namespace bullseye::shader {
         glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, &value[0]);
     }
 
+    void Shader::set_mat3(const std::string &name, const glm::mat3 &value) {
+        glUniformMatrix3fv(glGetUniformLocation(this->id, name.c_str()), 1, false, &value[0][0]);
+    }
+
     void Shader::set_mat4(const std::string &name, const glm::mat4 &value) {
         glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, &value[0][0]);
+    }
+
+    void Shader::set_mat4(const std::string& name, const float value[]) {
+        //assert(sizeof(value) == 16 * sizeof(float));
+
+        glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, value);
+    }
+
+    uint32_t Shader::get_attrib_location(const std::string &name) {
+        return glGetAttribLocation(this->id, name.c_str());
     }
 
     uint32_t Shader::get_id() {

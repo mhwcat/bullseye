@@ -15,7 +15,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#include "reactphysics3d/include/reactphysics3d/reactphysics3d.h"
+#include "reactphysics3d/reactphysics3d.h"
 
 #include "logger.h"
 #include "shader.h"
@@ -30,6 +30,7 @@
 #include "entity.h"
 #include "consts.h"
 #include "texture_manager.h"
+#include "physics_debug_renderer.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -39,7 +40,7 @@ using namespace bullseye;
 int main(int argc, char *argv[]) {
     logger::info("Starting Bullseye");
 
-    app_settings::AppSettings app_settings { false,  false };
+    app_settings::AppSettings app_settings { false,  false, true };
 
     logger::debug("Initializing SDL");
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -108,24 +109,46 @@ int main(int argc, char *argv[]) {
     logger::debug("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
         glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
+    srand(time(NULL));
+
     shader::ShaderManager shader_manager;
     shader_manager.load_shader("lightcube", "assets/shaders/light_cube_vert.glsl", "assets/shaders/light_cube_frag.glsl");
     shader_manager.load_shader("main", "assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
     shader_manager.load_shader("gun", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
+    shader_manager.load_shader("physics_debug", "assets/shaders/physics_debug_vert.glsl", "assets/shaders/physics_debug_frag.glsl");
 
     texture::TextureManager texture_manager;
     texture_manager.load_texture("grass", "assets/textures/grass.jpg");
+    texture_manager.load_texture("metal", "assets/textures/metal.jpg");
 
-    entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f));
-    plane.add_mesh_from_file("plane_mesh", "assets/models/plane.obj", glm::vec3(2.f));
+    rp3d::PhysicsCommon physics_common;
+    rp3d::PhysicsWorld* world = physics_common.createPhysicsWorld();
+    rp3d::DefaultLogger* logger = physics_common.createDefaultLogger();
+    uint32_t logLevel = static_cast<uint32_t>(static_cast<uint32_t>(rp3d::Logger::Level::Information) | static_cast<uint32_t>(rp3d::Logger::Level::Warning) | static_cast<uint32_t>(rp3d::Logger::Level::Error));
+    logger->addStreamDestination(std::cout, logLevel, rp3d::DefaultLogger::Format::Text);
+    physics_common.setLogger(logger);
+    //world->setGravity(rp3d::Vector3(0.f, -1.f, 0.f));
+    //world->setNbIterationsPositionSolver(24);
 
-    entity::Entity box("box", glm::vec3(0.f, 0.f, -5.f));
+    logger::debug("Initialized rp3d physics");
+
+    render::PhysicsDebugRenderer physics_debug_renderer(world);
+
+    logger::debug("Initialized rp3d physics debug renderer");
+
+    entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
+    plane.add_mesh_from_file("plane_mesh", "assets/models/plane.obj", glm::vec3(5.f, 1.f, 5.f));
+    entity::Entity box("box", glm::vec3(0.f, 9.f, -5.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
     box.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
-    entity::Entity box2("box2", glm::vec3(10.f, 3.f, -2.f));
+    entity::Entity box2("box2", glm::vec3(10.f, 8.f, -2.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
     box2.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
 
     entity::gun::Gun gun;
     gun.add_mesh_from_file("gun_mesh", "assets/models/M4A1.obj", glm::vec3(0.016f, 0.016f, 0.016f));
+
+    plane.init_physics(world, &physics_common);
+    box.init_physics(world, &physics_common);
+    box2.init_physics(world, &physics_common);
 
     std::vector<entity::Entity> entities;
     entities.push_back(std::move(box));
@@ -150,21 +173,13 @@ int main(int argc, char *argv[]) {
 
     //entity::gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
-    const char* entities_names[64];
-    for (int i = 0; i < entities.size(); i++) {
-        entities_names[i] = entities[i].get_name();
-    }
-    static int listbox_item_current = 1;
+    static int listbox_item_current = 0;
 
     typedef std::chrono::high_resolution_clock Clock;
     simple_timer::SimpleTimer frame_timer;
 
-    rp3d::PhysicsCommon physicsCommon;
-    // Create a physics world 
-    rp3d::PhysicsWorld* world = physicsCommon.createPhysicsWorld();
-
     // Time between updates in microseconds
-    const uint64_t dt = static_cast<const uint64_t>(1 * 1000);
+    const uint64_t dt = static_cast<const uint64_t>(10 * 1000);
 
     uint64_t current_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now().time_since_epoch()).count());
     uint64_t accumulator = 0, new_time = 0, loop_time = 0, time_elapsed = 0;
@@ -224,7 +239,29 @@ int main(int argc, char *argv[]) {
                     }
                     if (event.key.keysym.sym == SDLK_f) {
                         app_settings.camera_free_fly = !app_settings.camera_free_fly;
-                    }                    
+                    }    
+                    if (event.key.keysym.sym == SDLK_g) {
+                        const float X = 25.f;
+                        const float Y = 360.f;
+                        float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
+                        float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
+                        float z = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
+                        float s = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X)) / 10.f;
+
+                        float q1 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
+                        float q2 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
+                        float q3 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
+
+                        char namebuf[16];
+                        snprintf(namebuf, 16, "%s%d", "box", entities.size());
+                        rp3d::Quaternion q = rp3d::Quaternion(q1, q2, q3, 1.0f);
+                        q.normalize();
+                        entity::Entity box(namebuf, glm::vec3(x, y, z), q, entity::BodyType::RIGID);
+                        box.add_mesh_from_file("box_mesh", "assets/models/cube.obj", glm::vec3(s));
+                        box.init_physics(world, &physics_common);
+
+                        entities.push_back(std::move(box));
+                    }
                     break;  
                 case SDL_KEYUP:
                     camera.process_input(camera::MovementDirection::NONE);   
@@ -252,6 +289,8 @@ int main(int argc, char *argv[]) {
         // ===== App settings
         camera.update_settings(&app_settings);
 
+        physics_debug_renderer.update_settings(&app_settings);
+
         // ===== Logic update
         while(accumulator >= dt) {
             camera.update(dt / 1000000.f);
@@ -260,6 +299,8 @@ int main(int argc, char *argv[]) {
             for (auto &entity : entities) {
                 entity.update(dt / 1000000.f);
             }
+
+           world->update(dt / 1000000.f);
 
             time_elapsed += dt;
             accumulator -= dt;
@@ -294,7 +335,10 @@ int main(int argc, char *argv[]) {
             if (strcmp(entity.get_name(), "plane") == 0) {
                 texture_manager.use_texture("grass", shader_manager.get_shader("main").get_id());
             }
-
+            else {
+                texture_manager.use_texture("metal", shader_manager.get_shader("main").get_id());
+            }
+         
             shader_manager.use_shader("main");
             shader_manager.set_mat4("main", "projection", proj);
             shader_manager.set_mat4("main", "view", view);
@@ -318,10 +362,20 @@ int main(int argc, char *argv[]) {
             light_cube_mesh.draw_light_cube(); 
         }
 
+        if (world->getIsDebugRenderingEnabled()) {
+            physics_debug_renderer.draw(shader_manager.get_shader("physics_debug"), camera, interp);
+        }
+
         // Skybox
         skybox.draw(proj, view);
 
         // Debug GUI 
+        const char* entities_names[64];
+        assert(entities.size() <= 64);
+        for (int i = 0; i < entities.size(); i++) {
+            entities_names[i] = entities[i].get_name();
+        }
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame(window);
         ImGui::NewFrame();
@@ -340,10 +394,12 @@ int main(int argc, char *argv[]) {
         ImGui::Spacing();
         ImGui::Checkbox("Locked [C]", &app_settings.camera_mouse_attached);
         ImGui::Checkbox("Free fly [F]", &app_settings.camera_free_fly);
+        ImGui::Spacing();
+        ImGui::Checkbox("Physics debug", &app_settings.physics_debug_draw);
         ImGui::End();
         ImGui::Begin("Entities");
         ImGui::PushItemWidth(-1);
-        ImGui::ListBox("", &listbox_item_current, entities_names, entities.size());
+        ImGui::ListBox("", &listbox_item_current, entities_names, entities.size(), 12);
         ImGui::Separator();
         ImGui::End();
         ImGui::Render();
@@ -351,24 +407,29 @@ int main(int argc, char *argv[]) {
 
         SDL_GL_SwapWindow(window);
 
-        last_render_time = frame_timer.get_microseconds_since_start() / 1000.f;
+        last_render_time = (frame_timer.get_microseconds_since_start() / 1000.f) + update_time;
     }
 
     // Cleanup
+    logger::debug("Unloading managers");
     shader_manager.unload();
     texture_manager.unload();
 
+    logger::debug("Unloading entities");
     for (auto &entity : entities) {
-        entity.unload();
+        entity.unload(world);
     }
 
     for (auto light_cube_mesh : light_cubes) {
         light_cube_mesh.unload();
     }
 
-    gun.unload();
+    gun.unload(world);
 
     skybox.unload();
+
+    logger::debug("Unloading rp3d");
+    physics_common.destroyPhysicsWorld(world);
 
     logger::debug("Shutting down ImGui");
     ImGui_ImplOpenGL3_Shutdown();
