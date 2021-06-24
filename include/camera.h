@@ -12,7 +12,8 @@ namespace bullseye::camera {
     const float DEFAULT_MOVEMENT_SPEED      = 10.f;
 
     enum MovementDirection {
-        UP, DOWN, FRONT, BACK, LEFT, RIGHT, NONE
+        UP, DOWN, FRONT, BACK, LEFT, RIGHT, NONE,
+        FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT
     };
 
     class Camera {

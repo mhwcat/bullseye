@@ -175,6 +175,9 @@ int main(int argc, char *argv[]) {
 
     static int listbox_item_current = 0;
 
+    std::unordered_map<SDL_Keycode, bool> pressed_keys;
+    pressed_keys.reserve(128);
+
     typedef std::chrono::high_resolution_clock Clock;
     simple_timer::SimpleTimer frame_timer;
 
@@ -216,30 +219,14 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case SDL_KEYDOWN:
-                    if (event.key.keysym.sym == SDLK_w) {
-                        camera.process_input(camera::MovementDirection::FRONT);
-                    }
-                    if (event.key.keysym.sym == SDLK_s) {
-                        camera.process_input(camera::MovementDirection::BACK);
-                    }     
-                    if (event.key.keysym.sym == SDLK_a) {
-                        camera.process_input(camera::MovementDirection::LEFT);
-                    }
-                    if (event.key.keysym.sym == SDLK_d) {
-                        camera.process_input(camera::MovementDirection::RIGHT);
-                    }  
-                    if (event.key.keysym.sym == SDLK_q) {
-                        camera.process_input(camera::MovementDirection::UP);
-                    }
-                    if (event.key.keysym.sym == SDLK_z) {
-                        camera.process_input(camera::MovementDirection::DOWN);
-                    }
+                    pressed_keys[event.key.keysym.sym] = true;
+
                     if (event.key.keysym.sym == SDLK_c) {
                         app_settings.camera_mouse_attached = !app_settings.camera_mouse_attached;
                     }
                     if (event.key.keysym.sym == SDLK_f) {
-                        app_settings.camera_free_fly = !app_settings.camera_free_fly;
-                    }    
+                       app_settings.camera_free_fly = !app_settings.camera_free_fly;
+                    }
                     if (event.key.keysym.sym == SDLK_g) {
                         const float X = 25.f;
                         const float Y = 360.f;
@@ -264,7 +251,7 @@ int main(int argc, char *argv[]) {
                     }
                     break;  
                 case SDL_KEYUP:
-                    camera.process_input(camera::MovementDirection::NONE);   
+                    pressed_keys[event.key.keysym.sym] = false;
                     break; 
                 case SDL_MOUSEMOTION:
                     if (camera.is_mouse_attached()) {
@@ -285,7 +272,32 @@ int main(int argc, char *argv[]) {
 
             ImGui_ImplSDL2_ProcessEvent(&event);
         }
-        
+
+        // ===== Process movement input
+        if (pressed_keys[SDLK_w] && pressed_keys[SDLK_d]) {
+            camera.process_input(camera::MovementDirection::FRONT_RIGHT);
+        } else if (pressed_keys[SDLK_w] && pressed_keys[SDLK_a]) {
+            camera.process_input(camera::MovementDirection::FRONT_LEFT);
+        } else if (pressed_keys[SDLK_s] && pressed_keys[SDLK_a]) {
+            camera.process_input(camera::MovementDirection::BACK_RIGHT);
+        } else if (pressed_keys[SDLK_s] && pressed_keys[SDLK_d]) {
+            camera.process_input(camera::MovementDirection::BACK_LEFT);
+        } else if (pressed_keys[SDLK_w]) {
+            camera.process_input(camera::MovementDirection::FRONT);
+        } else if (pressed_keys[SDLK_s]) {
+            camera.process_input(camera::MovementDirection::BACK);
+        } else if (pressed_keys[SDLK_a]) {
+            camera.process_input(camera::MovementDirection::LEFT);
+        } else if (pressed_keys[SDLK_d]) {
+            camera.process_input(camera::MovementDirection::RIGHT);
+        } else if (pressed_keys[SDLK_q]) {
+            camera.process_input(camera::MovementDirection::UP);
+        } else if (pressed_keys[SDLK_z]) {
+            camera.process_input(camera::MovementDirection::DOWN);
+        } else {
+            camera.process_input(camera::MovementDirection::NONE);
+        }
+
         // ===== App settings
         camera.update_settings(&app_settings);
 

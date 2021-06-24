@@ -121,6 +121,18 @@ namespace bullseye::camera {
             case RIGHT:
                 position += right * velocity;
                 break;
+            case FRONT_LEFT:
+                position += (-right + front) * velocity;
+                break;
+            case FRONT_RIGHT:
+                position += (right + front) * velocity;
+                break;
+            case BACK_LEFT:
+                position -= (-right + front) * velocity;
+                break;
+            case BACK_RIGHT:
+                position -= (right + front) * velocity;
+                break;
             default:
                 break;
         }
