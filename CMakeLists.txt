@@ -33,9 +33,9 @@ set(STB_HEADERS 3rdparty/stb/stb_image.h)
 # Project sources
 set(BULLSEYE_HEADERS include/logger.h include/shader.h include/math_utils.h include/camera.h include/simple_timer.h 
     include/mesh.h include/app_settings.h include/skybox.h include/gun.h include/entity.h 
-    include/consts.h include/shader_manager.h include/texture_manager.h include/physics_debug_renderer.h)
+    include/consts.h include/shader_manager.h include/texture_manager.h include/mesh_manager.h include/physics_debug_renderer.h)
 set(BULLSEYE_SOURCES src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/mesh.cpp 
-    src/skybox.cpp src/gun.cpp src/entity.cpp src/shader_manager.cpp src/texture_manager.cpp src/physics_debug_renderer.cpp)
+    src/skybox.cpp src/gun.cpp src/entity.cpp src/shader_manager.cpp src/texture_manager.cpp src/mesh_manager.cpp src/physics_debug_renderer.cpp)
 
 set(SOURCE_FILES 
     ${GLAD_HEADERS} ${GLAD_SOURCES}

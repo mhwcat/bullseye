@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #include "reactphysics3d/reactphysics3d.h"
 
 namespace bullseye::entity {
@@ -28,7 +29,7 @@ namespace bullseye::entity {
 
     }
 
-    void Entity::init_physics(rp3d::PhysicsWorld* physics_world, rp3d::PhysicsCommon* physics_common) {
+    void Entity::init_physics(rp3d::PhysicsWorld* physics_world, rp3d::PhysicsCommon* physics_common, mesh::Mesh* mesh) {
         assert(physics_common != nullptr);
         assert(physics_world != nullptr);
 
@@ -40,42 +41,30 @@ namespace bullseye::entity {
             this->previous_transform.getOrientation().x, this->previous_transform.getOrientation().y, this->previous_transform.getOrientation().z, this->previous_transform.getOrientation().w);
 
         if (body_type != BodyType::NO_PHYSICS) {
-            for (auto& mesh : this->meshes) {
-                rp3d::BoxShape* boxShape = physics_common->createBoxShape(rp3d::Vector3(
-                    mesh.second->get_extents().x, mesh.second->get_extents().y, mesh.second->get_extents().z));
+            rp3d::BoxShape* boxShape = physics_common->createBoxShape(rp3d::Vector3(
+                mesh->get_extents().x, mesh->get_extents().y, mesh->get_extents().z));
 
-                if (body_type == BodyType::RIGID) {
-                    logger::debug("Adding rigid body for entity: %s, mesh: %s", this->name.c_str(), mesh.first.c_str());
+            if (body_type == BodyType::RIGID) {
+                logger::debug("Adding rigid body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
                     
-                    this->physics_body = physics_world->createRigidBody(this->previous_transform);
-                    this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
+                this->physics_body = physics_world->createRigidBody(this->previous_transform);
+                this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
 
-                    if (this->name == "plane") {
-                        dynamic_cast<rp3d::RigidBody*>(this->physics_body)->enableGravity(false);
-                        dynamic_cast<rp3d::RigidBody*>(this->physics_body)->setType(rp3d::BodyType::STATIC);
-                    }
+                if (this->name == "plane") {
+                    dynamic_cast<rp3d::RigidBody*>(this->physics_body)->enableGravity(false);
+                    dynamic_cast<rp3d::RigidBody*>(this->physics_body)->setType(rp3d::BodyType::STATIC);
                 }
+            }
 
-                if (body_type == BodyType::COLLISION) {
-                    logger::debug("Adding collision body for entity: %s, mesh: %s", this->name.c_str(), mesh.first.c_str());
+            if (body_type == BodyType::COLLISION) {
+                logger::debug("Adding collision body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
 
-                    this->physics_body = physics_world->createCollisionBody(this->previous_transform);
-                    this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
-                }
+                this->physics_body = physics_world->createCollisionBody(this->previous_transform);
+                this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
             }
             
         }
     }
-
-    void Entity::add_mesh_from_file(std::string mesh_name, std::string obj_path, glm::vec3 scale) {
-        mesh::Mesh *mesh = new mesh::Mesh(mesh_name, obj_path, scale);
-        this->meshes.insert({ mesh_name, mesh });
-    }
-
-    void Entity::add_mesh_from_array(std::string mesh_name, const float* vertices, const uint32_t vertices_len) {
-        mesh::Mesh *mesh = new mesh::Mesh(mesh_name, vertices, vertices_len);
-        this->meshes.insert({ mesh_name, mesh });
-    }    
 
     void Entity::update(float delta_time) {
         glm::vec3 rotation_velocity = this->rotation_speed * delta_time;
@@ -87,29 +76,18 @@ namespace bullseye::entity {
         this->rotation += rotation_velocity;
     }
 
-    void Entity::draw(shader::Shader &shader, float interp) {
+    glm::mat4 Entity::get_model_matrix(float interp) {
         rp3d::Transform current_transform = this->physics_body->getTransform();
         rp3d::Transform interpolated_transform = rp3d::Transform::interpolateTransforms(this->previous_transform, current_transform, interp);
         this->previous_transform = current_transform;
 
-        float model[16];
+        float model_matrix[16];
+        interpolated_transform.getOpenGLMatrix(model_matrix);
 
-        for (auto &mesh : meshes) {
-            interpolated_transform.getOpenGLMatrix(model);
-            shader.set_mat4("model", model);
-
-            mesh.second->draw(shader);
-        }
+        return glm::make_mat4(model_matrix);
     }
 
     void Entity::unload(rp3d::PhysicsWorld* world) {
-        for (auto &mesh : this->meshes) {
-            mesh.second->unload();
-            delete mesh.second;
-        }
-
-        this->meshes.clear();
-
         // @TODO Fix crash on app exit
         if (world != nullptr && this->physics_body != nullptr) {
             if (this->body_type == BodyType::COLLISION) {
@@ -122,8 +100,16 @@ namespace bullseye::entity {
         }
     }
 
+    void Entity::set_mesh(std::string mesh_name) {
+        this->mesh_name = mesh_name;
+    }
+
     const char* Entity::get_name() {
         return this->name.c_str();
+    }
+
+    const std::string& Entity::get_mesh_name() {
+        return this->mesh_name;
     }
 
     const glm::vec3& Entity::get_rotation() {

@@ -44,7 +44,7 @@ namespace bullseye::entity::gun {
         }
     }
 
-    void Gun::draw(shader::Shader& shader, float interp) {
+    glm::mat4 Gun::get_model_matrix() {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.07f, -0.08f, -0.2f));
         model = glm::rotate(model, math_utils::to_radians(180.f), glm::vec3(0.f, 1.f, 0.f));
@@ -53,10 +53,6 @@ namespace bullseye::entity::gun {
         // Move model according to relative pos
         model = glm::translate(model, this->relative_position);
 
-        shader.set_mat4("model", model);
-
-        for (auto &mesh : this->meshes) {
-            mesh.second->draw(shader);
-        }
+        return model;
     }
 }

@@ -25,7 +25,7 @@ namespace bullseye::entity::gun {
 
             void shoot();
             virtual void update(float delta_time);
-            void draw(shader::Shader& shader, float interp);
+            glm::mat4 get_model_matrix();
         private:
             glm::vec3 relative_position;
             GunState gun_state;

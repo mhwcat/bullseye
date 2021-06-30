@@ -79,7 +79,7 @@ namespace bullseye::mesh {
                 }
 
                 this->vertices.push_back(vertex);
-                this->indices.push_back(indices.size()); // @KNOWHOW: why size()?
+                this->indices.push_back(indices.size());
             }
         }
 
@@ -138,7 +138,7 @@ namespace bullseye::mesh {
         this->extents = glm::vec3(max_x, max_y, max_z);
     }
 
-    void Mesh::draw(shader::Shader &shader) {
+    void Mesh::draw() {
         glBindVertexArray(this->vao);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);

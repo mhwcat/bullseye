@@ -31,6 +31,7 @@
 #include "consts.h"
 #include "texture_manager.h"
 #include "physics_debug_renderer.h"
+#include "mesh_manager.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -121,6 +122,11 @@ int main(int argc, char *argv[]) {
     texture_manager.load_texture("grass", "assets/textures/grass.jpg");
     texture_manager.load_texture("metal", "assets/textures/metal.jpg");
 
+    mesh::MeshManager mesh_manager;
+    mesh_manager.load_mesh("plane", "assets/models/plane.obj", glm::vec3(5.f, 1.f, 5.f));
+    mesh_manager.load_mesh("box", "assets/models/cube.obj");
+    mesh_manager.load_mesh("gun", "assets/models/M4A1.obj", glm::vec3(0.016f, 0.016f, 0.016f));
+
     rp3d::PhysicsCommon physics_common;
     rp3d::PhysicsWorld* world = physics_common.createPhysicsWorld();
     rp3d::DefaultLogger* logger = physics_common.createDefaultLogger();
@@ -137,18 +143,17 @@ int main(int argc, char *argv[]) {
     logger::debug("Initialized rp3d physics debug renderer");
 
     entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
-    plane.add_mesh_from_file("plane_mesh", "assets/models/plane.obj", glm::vec3(5.f, 1.f, 5.f));
+    plane.set_mesh("plane");
     entity::Entity box("box", glm::vec3(0.f, 9.f, -5.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
-    box.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
+    box.set_mesh("box");
     entity::Entity box2("box2", glm::vec3(10.f, 8.f, -2.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
-    box2.add_mesh_from_file("box_mesh", "assets/models/cube.obj");
+    box2.set_mesh("box");
 
     entity::gun::Gun gun;
-    gun.add_mesh_from_file("gun_mesh", "assets/models/M4A1.obj", glm::vec3(0.016f, 0.016f, 0.016f));
 
-    plane.init_physics(world, &physics_common);
-    box.init_physics(world, &physics_common);
-    box2.init_physics(world, &physics_common);
+    plane.init_physics(world, &physics_common, mesh_manager.get_mesh(plane.get_mesh_name()));
+    box.init_physics(world, &physics_common, mesh_manager.get_mesh(box.get_mesh_name()));
+    box2.init_physics(world, &physics_common, mesh_manager.get_mesh(box2.get_mesh_name()));
 
     std::vector<entity::Entity> entities;
     entities.push_back(std::move(box));
@@ -170,8 +175,6 @@ int main(int argc, char *argv[]) {
         "assets/textures/skybox/negz.jpg"
     });
     skybox::Skybox skybox(skybox_texture_paths, "assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl");
-
-    //entity::gun::Gun gun("assets/models/M4A1.obj", "assets/shaders/gun_vert.glsl", "assets/shaders/gun_frag.glsl");
 
     static int listbox_item_current = 0;
 
@@ -227,28 +230,28 @@ int main(int argc, char *argv[]) {
                     if (event.key.keysym.sym == SDLK_f) {
                        app_settings.camera_free_fly = !app_settings.camera_free_fly;
                     }
-                    if (event.key.keysym.sym == SDLK_g) {
-                        const float X = 25.f;
-                        const float Y = 360.f;
-                        float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
-                        float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
-                        float z = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
-                        float s = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X)) / 10.f;
+                     if (event.key.keysym.sym == SDLK_g) {
+                         const float X = 25.f;
+                         const float Y = 360.f;
+                         float x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
+                         float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
+                         float z = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X));
+                         float s = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / X)) / 10.f;
 
-                        float q1 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
-                        float q2 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
-                        float q3 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
+                         float q1 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
+                         float q2 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
+                         float q3 = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / Y));
 
-                        char namebuf[16];
-                        snprintf(namebuf, 16, "%s%d", "box", entities.size());
-                        rp3d::Quaternion q = rp3d::Quaternion(q1, q2, q3, 1.0f);
-                        q.normalize();
-                        entity::Entity box(namebuf, glm::vec3(x, y, z), q, entity::BodyType::RIGID);
-                        box.add_mesh_from_file("box_mesh", "assets/models/cube.obj", glm::vec3(s));
-                        box.init_physics(world, &physics_common);
+                         char namebuf[16];
+                         snprintf(namebuf, 16, "%s%d", "box", entities.size());
+                         rp3d::Quaternion q = rp3d::Quaternion(q1, q2, q3, 1.0f);
+                         q.normalize();
+                         entity::Entity box(namebuf, glm::vec3(x, y, z), q, entity::BodyType::RIGID);
+                         box.set_mesh("box");
+                         box.init_physics(world, &physics_common, mesh_manager.get_mesh("box"));
 
-                        entities.push_back(std::move(box));
-                    }
+                         entities.push_back(std::move(box));
+                     }
                     break;  
                 case SDL_KEYUP:
                     pressed_keys[event.key.keysym.sym] = false;
@@ -341,7 +344,8 @@ int main(int argc, char *argv[]) {
         shader_manager.set_vec3("gun", "view_pos", *camera.get_position());
         shader_manager.set_vec3("gun", "light_color", glm::vec3(1.f, 1.f, 1.f));
         shader_manager.set_vec3("gun", "object_color", glm::vec3(0.1f, 0.1f, 0.1f));  
-        gun.draw(shader_manager.get_shader("gun"), interp);
+        shader_manager.set_mat4("gun", "model", gun.get_model_matrix());
+        mesh_manager.draw_mesh("gun");
 
         for (auto &entity : entities) {
             if (strcmp(entity.get_name(), "plane") == 0) {
@@ -358,8 +362,9 @@ int main(int argc, char *argv[]) {
             shader_manager.set_vec3("main", "view_pos", *camera.get_position());
             shader_manager.set_vec3("main", "light_color", glm::vec3(1.f, 1.f, 1.f));
             shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f)); 
-
-            entity.draw(shader_manager.get_shader("main"), interp);
+            shader_manager.set_mat4("main", "model", entity.get_model_matrix(interp));
+            
+            mesh_manager.draw_mesh(entity.get_mesh_name());
         }
 
         shader_manager.use_shader("lightcube");
@@ -382,8 +387,8 @@ int main(int argc, char *argv[]) {
         skybox.draw(proj, view);
 
         // Debug GUI 
-        const char* entities_names[64];
-        assert(entities.size() <= 64);
+        const char* entities_names[256];
+        assert(entities.size() <= 256);
         for (int i = 0; i < entities.size(); i++) {
             entities_names[i] = entities[i].get_name();
         }
@@ -426,6 +431,7 @@ int main(int argc, char *argv[]) {
     logger::debug("Unloading managers");
     shader_manager.unload();
     texture_manager.unload();
+    mesh_manager.unload();
 
     logger::debug("Unloading entities");
     for (auto &entity : entities) {

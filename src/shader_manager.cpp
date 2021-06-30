@@ -20,6 +20,8 @@ namespace bullseye::shader {
         shader->link_shaders();
 
         this->shaders.insert({ name, shader });
+
+        logger::debug("Shader loaded [name=%s, vertex=%s, fragment=%s]", name.c_str(), vertex_shader_path.c_str(), fragment_shader_path.c_str());
     }
 
     void ShaderManager::unload_shader(const std::string &name) {
@@ -30,8 +32,10 @@ namespace bullseye::shader {
             delete shader_to_unload;
             this->shaders.erase(name);
         } else {
-            logger::error("Cannot unload shader %s, shader not present in ShaderManager!", name.c_str());
+            logger::error("Cannot unload shader, not present in ShaderManager! [name=%s]", name.c_str());
         }
+
+        logger::debug("Shader unloaded [name=%s]", name.c_str());
     }
 
     void ShaderManager::unload() {
@@ -47,7 +51,7 @@ namespace bullseye::shader {
         try {
             this->shaders.at(name)->use();
         } catch (const std::out_of_range& e) {
-            logger::error("Shader %s not present in ShaderManager! [error=%s]", name.c_str(), e.what());
+            logger::error("Shader not present in ShaderManager! [name=%s, error=%s]", name.c_str(), e.what());
         }
     }
 
