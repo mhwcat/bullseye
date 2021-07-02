@@ -23,7 +23,7 @@ namespace bullseye::entity {
             ~Entity();
 
             void update(float delta_time);
-            glm::mat4 Entity::get_model_matrix(float interp);
+            glm::mat4 get_model_matrix(float interp);
             virtual void unload(rp3d::PhysicsWorld* world);
 
             void set_mesh(std::string mesh_name);
