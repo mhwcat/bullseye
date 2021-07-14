@@ -1,4 +1,5 @@
-#version 330
+#version 410 core
+
 uniform samplerCube skybox;
 
 smooth in vec3 eyeDirection;

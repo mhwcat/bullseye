@@ -1,5 +1,5 @@
 
-#version 430 core
+#version 410 core
 
 // Uniform variables
 uniform mat4 model;        // Local-space to world-space matrix

@@ -1,5 +1,5 @@
 
-#version 430 core
+#version 410 core
 
 in vec4 vertex_color_out;
 out vec4 color;
