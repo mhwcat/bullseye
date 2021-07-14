@@ -126,6 +126,7 @@ int main(int argc, char *argv[]) {
     mesh_manager.load_mesh("plane", "assets/models/plane.obj", glm::vec3(5.f, 1.f, 5.f));
     mesh_manager.load_mesh("box", "assets/models/cube.obj");
     mesh_manager.load_mesh("gun", "assets/models/M4A1.obj", glm::vec3(0.016f, 0.016f, 0.016f));
+    mesh_manager.load_mesh("bullet", "assets/models/cube.obj", glm::vec3(0.3f, 0.3f, 0.3f));
 
     rp3d::PhysicsCommon physics_common;
     rp3d::PhysicsWorld* world = physics_common.createPhysicsWorld();
@@ -159,6 +160,9 @@ int main(int argc, char *argv[]) {
     entities.push_back(std::move(box));
     entities.push_back(std::move(box2));
     entities.push_back(std::move(plane));
+
+    std::vector<entity::Entity> volatile_entities;
+    volatile_entities.reserve(1024);
 
     std::vector<mesh::Mesh> light_cubes;
     light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
@@ -269,6 +273,18 @@ int main(int argc, char *argv[]) {
 
                     if (event.button.button == SDL_BUTTON_LEFT) {
                         gun.shoot();
+
+                        glm::vec3 bullet_starting_pos = glm::vec3(camera.get_position()->x + 0.1f, camera.get_position()->y + 0.1f, camera.get_position()->z + 0.1f);
+
+                        entity::Entity bullet("bullet" + std::to_string(volatile_entities.size() + 1024), 
+                            bullet_starting_pos, 
+                            rp3d::Quaternion::fromEulerAngles(rp3d::Vector3(camera.get_front().x, camera.get_front().y, camera.get_front().z)),
+                            entity::BodyType::RIGID);
+                        bullet.set_mesh("bullet");
+                        bullet.init_physics(world, &physics_common, mesh_manager.get_mesh("bullet"), 0.1f);
+                        bullet.set_force(camera.get_front() * 10.f);
+
+                        volatile_entities.push_back(std::move(bullet));
                     }
                     break;
             }
@@ -307,15 +323,20 @@ int main(int argc, char *argv[]) {
         physics_debug_renderer.update_settings(&app_settings);
 
         // ===== Logic update
+        const float dt_ms = dt / 1000000.f;
         while(accumulator >= dt) {
-            camera.update(dt / 1000000.f);
-            gun.update(dt / 1000000.f);
+
+            camera.update(dt_ms);
+            gun.update(dt_ms);
             
             for (auto &entity : entities) {
-                entity.update(dt / 1000000.f);
+                entity.update(dt_ms);
+            }
+            for (auto& entity : volatile_entities) {
+                entity.update(dt_ms);
             }
 
-           world->update(dt / 1000000.f);
+            world->update(dt_ms);
 
             time_elapsed += dt;
             accumulator -= dt;
@@ -367,6 +388,27 @@ int main(int argc, char *argv[]) {
             mesh_manager.draw_mesh(entity.get_mesh_name());
         }
 
+        // TODO: Consolidate that to one draw loop
+        for (auto& entity : volatile_entities) {
+            if (strcmp(entity.get_name(), "plane") == 0) {
+                texture_manager.use_texture("grass", shader_manager.get_shader("main").get_id());
+            }
+            else {
+                texture_manager.use_texture("metal", shader_manager.get_shader("main").get_id());
+            }
+
+            shader_manager.use_shader("main");
+            shader_manager.set_mat4("main", "projection", proj);
+            shader_manager.set_mat4("main", "view", view);
+            shader_manager.set_vec3("main", "light_pos", light);
+            shader_manager.set_vec3("main", "view_pos", *camera.get_position());
+            shader_manager.set_vec3("main", "light_color", glm::vec3(1.f, 1.f, 1.f));
+            shader_manager.set_vec3("main", "object_color", glm::vec3(0.1f, 0.5f, 0.3f));
+            shader_manager.set_mat4("main", "model", entity.get_model_matrix(interp));
+
+            mesh_manager.draw_mesh(entity.get_mesh_name());
+        }
+
         shader_manager.use_shader("lightcube");
         shader_manager.set_mat4("lightcube", "projection", proj);
         shader_manager.set_mat4("lightcube", "view", view);
@@ -387,10 +429,16 @@ int main(int argc, char *argv[]) {
         skybox.draw(proj, view);
 
         // Debug GUI 
-        const char* entities_names[256];
-        assert(entities.size() <= 256);
-        for (int i = 0; i < entities.size(); i++) {
-            entities_names[i] = entities[i].get_name();
+        const char* entities_names[1024];
+        {
+            assert(entities.size() <= 1024);
+            uint32_t i = 0, j = 0;
+            for (i = 0; i < entities.size(); i++) {
+                entities_names[i] = entities[i].get_name();
+            }
+            for (j = 0; j < volatile_entities.size(); j++) {
+                entities_names[i + j] = volatile_entities[j].get_name();
+            }
         }
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -416,7 +464,7 @@ int main(int argc, char *argv[]) {
         ImGui::End();
         ImGui::Begin("Entities");
         ImGui::PushItemWidth(-1);
-        ImGui::ListBox("", &listbox_item_current, entities_names, entities.size(), 12);
+        ImGui::ListBox("", &listbox_item_current, entities_names, entities.size() + volatile_entities.size(), 12);
         ImGui::Separator();
         ImGui::End();
         ImGui::Render();
@@ -435,6 +483,9 @@ int main(int argc, char *argv[]) {
 
     logger::debug("Unloading entities");
     for (auto &entity : entities) {
+        entity.unload(world);
+    }
+    for (auto& entity : volatile_entities) {
         entity.unload(world);
     }
 

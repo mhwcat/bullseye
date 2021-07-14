@@ -29,7 +29,7 @@ namespace bullseye::entity {
 
     }
 
-    void Entity::init_physics(rp3d::PhysicsWorld* physics_world, rp3d::PhysicsCommon* physics_common, mesh::Mesh* mesh) {
+    void Entity::init_physics(rp3d::PhysicsWorld* physics_world, rp3d::PhysicsCommon* physics_common, mesh::Mesh* mesh, float mass) {
         assert(physics_common != nullptr);
         assert(physics_world != nullptr);
 
@@ -49,6 +49,9 @@ namespace bullseye::entity {
                     
                 this->physics_body = physics_world->createRigidBody(this->previous_transform);
                 this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
+                if (mass > 0.f) {
+                    dynamic_cast<rp3d::RigidBody*>(this->physics_body)->setMass(mass);
+                }
 
                 if (this->name == "plane") {
                     dynamic_cast<rp3d::RigidBody*>(this->physics_body)->enableGravity(false);
@@ -74,6 +77,10 @@ namespace bullseye::entity {
         previous_rotation.z = rotation.z;
 
         this->rotation += rotation_velocity;
+
+        if (this->body_type == BodyType::RIGID) {
+            dynamic_cast<rp3d::RigidBody*>(this->physics_body)->applyForceToCenterOfMass(this->applied_force);
+        }
     }
 
     glm::mat4 Entity::get_model_matrix(float interp) {
@@ -88,7 +95,6 @@ namespace bullseye::entity {
     }
 
     void Entity::unload(rp3d::PhysicsWorld* world) {
-        // @TODO Fix crash on app exit
         if (world != nullptr && this->physics_body != nullptr) {
             if (this->body_type == BodyType::COLLISION) {
                 world->destroyCollisionBody(this->physics_body);
@@ -112,11 +118,28 @@ namespace bullseye::entity {
         return this->mesh_name;
     }
 
+    const glm::vec3& Entity::get_position() {
+        return this->position;
+    }
+
     const glm::vec3& Entity::get_rotation() {
         return this->rotation;
     }
 
     void Entity::set_rotation_speed(glm::vec3 rotation_speed) {
         this->rotation_speed = rotation_speed;
+    }
+
+    rp3d::CollisionBody* Entity::get_collision_body() {
+        return this->physics_body;
+    }
+
+    // Warning: this will crash for any body that is not rigid 
+    rp3d::RigidBody* Entity::get_rigid_body() {
+        return dynamic_cast<rp3d::RigidBody*>(this->physics_body);
+    }
+
+    void Entity::set_force(glm::vec3 force) {
+        this->applied_force = rp3d::Vector3(force.x, force.y, force.z);
     }
 }

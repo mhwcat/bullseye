@@ -177,6 +177,10 @@ namespace bullseye::camera {
         return this->mouse_attached;
     }
 
+    const glm::vec3& Camera::get_front() {
+        return this->front;
+    }
+
     void Camera::update_settings(app_settings::AppSettings *app_settings) {
         if (this->mouse_attached && !app_settings->camera_mouse_attached) {
             this->mouse_attached = false;

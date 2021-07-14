@@ -34,6 +34,7 @@ namespace bullseye::camera {
             const float get_pitch();
             const float get_yaw();
             const bool is_mouse_attached();
+            const glm::vec3& get_front();
 
             void update_settings(app_settings::AppSettings *app_settings);
         private:

@@ -29,10 +29,14 @@ namespace bullseye::entity {
             void set_mesh(std::string mesh_name);
             const char* get_name();
             const std::string& get_mesh_name();
+            const glm::vec3& get_position();
             const glm::vec3& get_rotation();
             void set_rotation_speed(glm::vec3 rotation_speed);
+            void set_force(glm::vec3 force);
 
-            void init_physics(rp3d::PhysicsWorld* physics_world, rp3d::PhysicsCommon* physics_common, mesh::Mesh* mesh);
+            void init_physics(rp3d::PhysicsWorld* physics_world, rp3d::PhysicsCommon* physics_common, mesh::Mesh* mesh, float mass = -1.f);
+            rp3d::CollisionBody* get_collision_body();
+            rp3d::RigidBody* get_rigid_body();
 
         protected:
             std::string name;
@@ -49,6 +53,8 @@ namespace bullseye::entity {
             glm::vec3 previous_rotation;
 
             rp3d::Transform previous_transform;
+            rp3d::Vector3 applied_force;
+            float force_timer;
 
             glm::vec3 rotation_speed;
     };
