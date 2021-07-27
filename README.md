@@ -4,7 +4,7 @@ Simple 3D shooting range simulator written in C++ using OpenGL. Work in progress
 ### Prerequisities for all platforms
 * [SDL2](https://www.libsdl.org/index.php)
 * [CMake](https://cmake.org/) (>= 3.13)
-* GPU and drivers with support for at least OpenGL 4.3  
+* GPU and drivers with support for at least OpenGL 4.1  
 
 ### Windows
 Use CMake (min. 3.13) to generate Visual Studio solution. You might have to manually set `SDL2_PATH` to your local SDL2 development library path. SDL2.dll have to be copied to output build directory.  
