@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "logger.h"
+#include "clogger.h"
 #include "stb/stb_image.h"
 #include "glad/glad.h"
 
@@ -30,9 +30,9 @@ namespace bullseye::texture {
 
             stbi_image_free(data);
 
-            logger::debug("Loaded texture [path=%s, w=%d, h=%d]", path.c_str(), x, y);
+            CLOG_DEBUG("Loaded texture [path=%s, w=%d, h=%d]", path.c_str(), x, y);
         } else {
-            logger::error("Failed to load texture [path=%s]", path.c_str());
+            CLOG_ERROR("Failed to load texture [path=%s]", path.c_str());
         }
 
         this->textures.insert({ name, texture });

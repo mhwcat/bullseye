@@ -1,7 +1,7 @@
 #include "camera.h"
 #include "app_settings.h"
 #include "math_utils.h"
-#include "logger.h"
+#include "clogger.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -186,12 +186,12 @@ namespace bullseye::camera {
             this->mouse_attached = false;
             SDL_SetRelativeMouseMode(SDL_FALSE);
 
-            logger::debug("Camera detached from mouse");
+            CLOG_DEBUG("Camera detached from mouse");
         } else if (!this->mouse_attached && app_settings->camera_mouse_attached) {
             this->mouse_attached = true;
             SDL_SetRelativeMouseMode(SDL_TRUE);
 
-            logger::debug("Camera attached to mouse");
+            CLOG_DEBUG("Camera attached to mouse");
         }
 
         this->free_fly = app_settings->camera_free_fly;

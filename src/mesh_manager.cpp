@@ -1,5 +1,5 @@
 #include "mesh_manager.h"
-#include "logger.h"
+#include "clogger.h"
 
 #include <string>
 #include <stdexcept>
@@ -18,7 +18,7 @@ namespace bullseye::mesh {
 
         this->meshes.insert({ name, mesh });
 
-        logger::debug("Mesh loaded from file [name=%s, file=%s]", name.c_str(), mesh_file_path.c_str());
+        CLOG_DEBUG("Mesh loaded from file [name=%s, file=%s]", name.c_str(), mesh_file_path.c_str());
     }
 
     mesh::Mesh* MeshManager::get_mesh(const std::string &name) {
@@ -37,10 +37,10 @@ namespace bullseye::mesh {
             delete mesh_to_unload;
             this->meshes.erase(name);
         } else {
-            logger::error("Cannot unload mesh, mesh not present in MeshManager! [name=%s]", name.c_str());
+            CLOG_ERROR("Cannot unload mesh, mesh not present in MeshManager! [name=%s]", name.c_str());
         }       
 
-        logger::debug("Mesh unloaded [name=%s]", name.c_str()); 
+        CLOG_DEBUG("Mesh unloaded [name=%s]", name.c_str()); 
     }
 
     void MeshManager::unload() {

@@ -5,7 +5,7 @@
 #include <stb/stb_image.h>
 #include "glad/glad.h"
 
-#include "logger.h"
+#include "clogger.h"
 #include "shader.h"
 
 namespace bullseye::skybox {
@@ -34,9 +34,9 @@ namespace bullseye::skybox {
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
                 stbi_image_free(data);
 
-                logger::debug("Loaded texture [path=%s, w=%d, h=%d]", texture_path.c_str(), x, y);
+                CLOG_DEBUG("Loaded texture [path=%s, w=%d, h=%d]", texture_path.c_str(), x, y);
             } else {
-                logger::error("Failed to load texture [path=%s]", texture_path.c_str());
+                CLOG_ERROR("Failed to load texture [path=%s]", texture_path.c_str());
             }
 
             i++;
@@ -73,7 +73,7 @@ namespace bullseye::skybox {
     }
 
     void Skybox::unload() {
-        logger::debug("Unloading skybox shader");
+        CLOG_DEBUG("Unloading skybox shader");
 
         if (shader != nullptr) {
             shader->delete_program();

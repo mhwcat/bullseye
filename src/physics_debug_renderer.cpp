@@ -1,7 +1,7 @@
 #include "physics_debug_renderer.h"
 #include "shader.h"
 #include "camera.h"
-#include "logger.h"
+#include "clogger.h"
 
 #include "glad/glad.h"
 #include "glm/gtc/matrix_inverse.hpp"

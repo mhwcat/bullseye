@@ -6,7 +6,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "tobjl/tiny_obj_loader.h"
 
-#include "logger.h"
+#include "clogger.h"
 
 namespace bullseye::mesh {
     Mesh::Mesh(std::string name, std::string path, glm::vec3 scale) {
@@ -47,12 +47,12 @@ namespace bullseye::mesh {
 
         if (!reader.ParseFromFile(path, reader_config)) {
             if (!reader.Error().empty()) {
-                logger::error("TinyObjReader error: %s", reader.Error().c_str());
+                CLOG_ERROR("TinyObjReader error: %s", reader.Error().c_str());
             }
         }
 
         if (!reader.Warning().empty()) {
-            logger::warn("TinyObjReader warning: %s", reader.Warning().c_str());
+            CLOG_WARN("TinyObjReader warning: %s", reader.Warning().c_str());
         }
 
         auto& attrib = reader.GetAttrib();
@@ -83,7 +83,7 @@ namespace bullseye::mesh {
             }
         }
 
-        logger::debug("Loaded %s mesh [vertices=%d, indices=%d]", path.c_str(), vertices.size(), indices.size());
+        CLOG_DEBUG("Loaded %s mesh [vertices=%d, indices=%d]", path.c_str(), vertices.size(), indices.size());
     }
 
     void Mesh::setup_mesh() {
@@ -133,7 +133,7 @@ namespace bullseye::mesh {
             }                        
         }
 
-        logger::debug("Calculated bounding box for Mesh %s, max extents [x=%.2f, y=%.2f, z=%.2f]", this->name.c_str(), max_x, max_y, max_z);
+        CLOG_DEBUG("Calculated bounding box for Mesh %s, max extents [x=%.2f, y=%.2f, z=%.2f]", this->name.c_str(), max_x, max_y, max_z);
 
         this->extents = glm::vec3(max_x, max_y, max_z);
     }
@@ -151,7 +151,7 @@ namespace bullseye::mesh {
     }
 
     void Mesh::unload() {
-        logger::debug("Unloading mesh [name=%s]", this->name.c_str());
+        CLOG_DEBUG("Unloading mesh [name=%s]", this->name.c_str());
 
         glDeleteVertexArrays(1, &this->vao);
         glDeleteBuffers(1, &this->vbo);

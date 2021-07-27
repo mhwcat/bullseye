@@ -17,7 +17,7 @@
 
 #include "reactphysics3d/reactphysics3d.h"
 
-#include "logger.h"
+#include "clogger.h"
 #include "shader.h"
 #include "shader_manager.h"
 #include "camera.h"
@@ -39,19 +39,19 @@ const int HEIGHT = 720;
 using namespace bullseye;
 
 int main(int argc, char *argv[]) {
-    logger::info("Starting Bullseye");
+    CLOG_INFO("Starting Bullseye");
 
     app_settings::AppSettings app_settings { false,  false, true };
 
-    logger::debug("Initializing SDL");
+    CLOG_DEBUG("Initializing SDL");
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        logger::error("Failed initializing SDL! Error: %s", SDL_GetError());
+        CLOG_ERROR("Failed initializing SDL! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
     }
 
     SDL_version sdl_version;
     SDL_GetVersion(&sdl_version);
-    logger::debug("SDL version: %d.%d.%d", sdl_version.major, sdl_version.minor, sdl_version.patch);
+    CLOG_DEBUG("SDL version: %d.%d.%d", sdl_version.major, sdl_version.minor, sdl_version.patch);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);   
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -60,10 +60,10 @@ int main(int argc, char *argv[]) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    logger::debug("Initializing window");
+    CLOG_DEBUG("Initializing window");
     SDL_Window* window = SDL_CreateWindow("Bullseye", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
     if (window == NULL) {
-        logger::error("Failed initializing window! Error: %s", SDL_GetError());
+        CLOG_ERROR("Failed initializing window! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
     }
     {
@@ -71,13 +71,13 @@ int main(int argc, char *argv[]) {
 
         SDL_GetWindowSize(window, &window_w, &window_h);
         SDL_GetWindowPosition(window, &window_x, &window_y);
-        logger::debug("Initialized window [posX=%d, posY=%d, width=%d, height=%d, title=%s]", window_x, window_y, window_w, window_h, SDL_GetWindowTitle(window));
+        CLOG_DEBUG("Initialized window [posX=%d, posY=%d, width=%d, height=%d, title=%s]", window_x, window_y, window_w, window_h, SDL_GetWindowTitle(window));
     }
 
-    logger::debug("Initializing GL context");
+    CLOG_DEBUG("Initializing GL context");
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     if (gl_context == NULL) {
-        logger::error("Failed initializing GL context! Error: %s", SDL_GetError());
+        CLOG_ERROR("Failed initializing GL context! Error: %s", SDL_GetError());
         return EXIT_FAILURE;
     }
 
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     SDL_GL_SetSwapInterval(1);
 
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
-        logger::error("Failed to initialize OpenGL context");
+        CLOG_ERROR("Failed to initialize OpenGL context");
         return EXIT_FAILURE;
     }
 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init("#version 410");
 
-    logger::debug("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
+    CLOG_DEBUG("OpenGL info [Vendor: %s, Renderer: %s, Version: %s]", glGetString(GL_VENDOR), 
         glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
     srand(time(NULL));
@@ -137,11 +137,11 @@ int main(int argc, char *argv[]) {
     //world->setGravity(rp3d::Vector3(0.f, -1.f, 0.f));
     //world->setNbIterationsPositionSolver(24);
 
-    logger::debug("Initialized rp3d physics");
+    CLOG_DEBUG("Initialized rp3d physics");
 
     render::PhysicsDebugRenderer physics_debug_renderer(world);
 
-    logger::debug("Initialized rp3d physics debug renderer");
+    CLOG_DEBUG("Initialized rp3d physics debug renderer");
 
     entity::Entity plane("plane", glm::vec3(0.f, -3.f, 0.f), rp3d::Quaternion::identity(), entity::BodyType::RIGID);
     plane.set_mesh("plane");
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
                     break;
                 case SDL_WINDOWEVENT:
                     if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                        logger::debug("Window resized [width=%d, height=%d]", event.window.data1, event.window.data2);
+                        CLOG_DEBUG("Window resized [width=%d, height=%d]", event.window.data1, event.window.data2);
                     
                         glViewport(0, 0, event.window.data1, event.window.data2);
                     }
@@ -476,12 +476,12 @@ int main(int argc, char *argv[]) {
     }
 
     // Cleanup
-    logger::debug("Unloading managers");
+    CLOG_DEBUG("Unloading managers");
     shader_manager.unload();
     texture_manager.unload();
     mesh_manager.unload();
 
-    logger::debug("Unloading entities");
+    CLOG_DEBUG("Unloading entities");
     for (auto &entity : entities) {
         entity.unload(world);
     }
@@ -497,20 +497,20 @@ int main(int argc, char *argv[]) {
 
     skybox.unload();
 
-    logger::debug("Unloading rp3d");
+    CLOG_DEBUG("Unloading rp3d");
     physics_common.destroyPhysicsWorld(world);
 
-    logger::debug("Shutting down ImGui");
+    CLOG_DEBUG("Shutting down ImGui");
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
-    logger::debug("Shutting down GL context and SDL");
+    CLOG_DEBUG("Shutting down GL context and SDL");
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(window);
     SDL_Quit();
     
-    logger::info("Quitting Bullseye");
+    CLOG_INFO("Quitting Bullseye");
 
     return EXIT_SUCCESS;
 }

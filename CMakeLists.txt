@@ -29,9 +29,11 @@ set(IMGUI_SOURCES 3rdparty/imgui/imgui.cpp 3rdparty/imgui/imgui_widgets.cpp 3rdp
 set(TOBJL_HEADERS 3rdparty/tobjl/tiny_obj_loader.h)
 set(TOBJL_SOURCES 3rdparty/tobjl/tiny_obj_loader.cc)
 set(STB_HEADERS 3rdparty/stb/stb_image.h)
+set(CLOGGER_HEADERS 3rdparty/clogger/clogger.h)
+set(CLOGGER_SOURCES 3rdparty/clogger/clogger.cpp)
 
 # Project sources
-set(BULLSEYE_HEADERS include/logger.h include/shader.h include/math_utils.h include/camera.h include/simple_timer.h 
+set(BULLSEYE_HEADERS include/shader.h include/math_utils.h include/camera.h include/simple_timer.h 
     include/mesh.h include/app_settings.h include/skybox.h include/gun.h include/entity.h 
     include/consts.h include/shader_manager.h include/texture_manager.h include/mesh_manager.h include/physics_debug_renderer.h)
 set(BULLSEYE_SOURCES src/main.cpp src/shader.cpp src/camera.cpp src/simple_timer.cpp src/mesh.cpp 
@@ -42,6 +44,7 @@ set(SOURCE_FILES
     ${IMGUI_HEADERS} ${IMGUI_SOURCES}
     ${TOBJL_HEADERS} ${TOBJL_SOURCES}
     ${STB_HEADERS} 
+    ${CLOGGER_HEADERS} ${CLOGGER_SOURCES}
     ${BULLSEYE_HEADERS} ${BULLSEYE_SOURCES})
     
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -54,6 +57,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/glad)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/stb)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/reactphysics3d/include)
+target_include_directories(${PROJECT_NAME} PUBLIC  ${PROJECT_SOURCE_DIR}/3rdparty/clogger)
 
 target_link_libraries(${PROJECT_NAME} glm reactphysics3d SDL2::Main ${OPENGL_LIBRARIES} ${CMAKE_DL_LIBS})
 target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)

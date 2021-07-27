@@ -1,5 +1,5 @@
 #include "shader.h"
-#include "logger.h"
+#include "clogger.h"
 
 #include <fstream>
 #include <sstream>
@@ -21,14 +21,14 @@ namespace bullseye::shader {
             return buffer.str();
         }
         else {
-            logger::error("Failed loading shader file %s!", path);
+            CLOG_ERROR("Failed loading shader file %s!", path);
 
             return std::string();
         }
     }
 
     void Shader::load_vertex_shader(const char* path) {
-        logger::debug("Loading vertex shader [name=%s, path=%s]", this->name.c_str(), path);
+        CLOG_DEBUG("Loading vertex shader [name=%s, path=%s]", this->name.c_str(), path);
 
         std::string shader_src = load_file(path);
         const char* v_shader_src = shader_src.c_str();
@@ -42,12 +42,12 @@ namespace bullseye::shader {
         glGetShaderiv(this->vertex_shader_id, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(this->vertex_shader_id, 512, NULL, info_log);
-            logger::error("Failed to compile vertex shader: %s [name=%s]", info_log, this->name.c_str());
+            CLOG_ERROR("Failed to compile vertex shader: %s [name=%s]", info_log, this->name.c_str());
         }
     }
 
     void Shader::load_fragment_shader(const char* path) {
-        logger::debug("Loading fragment shader [name=%s, path=%s]", this->name.c_str(), path);
+        CLOG_DEBUG("Loading fragment shader [name=%s, path=%s]", this->name.c_str(), path);
 
         std::string shader_src = load_file(path);
 
@@ -62,12 +62,12 @@ namespace bullseye::shader {
         glGetShaderiv(this->fragment_shader_id, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(this->fragment_shader_id, 512, NULL, info_log);
-            logger::error("Failed to compile fragment shader: %s [name=%s]", info_log, this->name.c_str());
+            CLOG_ERROR("Failed to compile fragment shader: %s [name=%s]", info_log, this->name.c_str());
         }
     }
 
     void Shader::link_shaders() {
-        logger::debug("Linking shaders [name=%s]", this->name.c_str());
+        CLOG_DEBUG("Linking shaders [name=%s]", this->name.c_str());
 
         this->id = glCreateProgram();
         glAttachShader(this->id, this->vertex_shader_id);
@@ -79,7 +79,7 @@ namespace bullseye::shader {
         glGetProgramiv(this->id, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(this->id, 512, NULL, info_log);
-            logger::error("Failed to link shader program: %s [name=%s]", info_log, this->name.c_str());
+            CLOG_ERROR("Failed to link shader program: %s [name=%s]", info_log, this->name.c_str());
         }
 
         glDeleteShader(this->vertex_shader_id);
@@ -99,7 +99,7 @@ namespace bullseye::shader {
     }
     
     void Shader::delete_program() {
-        logger::debug("Deleting shader program [name=%s]", this->name.c_str());
+        CLOG_DEBUG("Deleting shader program [name=%s]", this->name.c_str());
 
         glDeleteProgram(this->id);
     }

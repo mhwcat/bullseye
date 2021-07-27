@@ -3,7 +3,7 @@
 #include "shader.h"
 #include "camera.h"
 #include "math_utils.h"
-#include "logger.h"
+#include "clogger.h"
 
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@ namespace bullseye::entity {
         this->physics_common = physics_common;
         this->physics_world = physics_world;
 
-        logger::debug("Initializing physics for entity %s, transform[pos=[%.2f, %.2f, %.2f], orientation=[%.2f, %.2f, %.2f, %.2f]]",
+        CLOG_DEBUG("Initializing physics for entity %s, transform[pos=[%.2f, %.2f, %.2f], orientation=[%.2f, %.2f, %.2f, %.2f]]",
             this->name.c_str(), this->previous_transform.getPosition().x, this->previous_transform.getPosition().y, this->previous_transform.getPosition().z,
             this->previous_transform.getOrientation().x, this->previous_transform.getOrientation().y, this->previous_transform.getOrientation().z, this->previous_transform.getOrientation().w);
 
@@ -45,7 +45,7 @@ namespace bullseye::entity {
                 mesh->get_extents().x, mesh->get_extents().y, mesh->get_extents().z));
 
             if (body_type == BodyType::RIGID) {
-                logger::debug("Adding rigid body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
+                CLOG_DEBUG("Adding rigid body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
                     
                 this->physics_body = physics_world->createRigidBody(this->previous_transform);
                 this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
@@ -60,7 +60,7 @@ namespace bullseye::entity {
             }
 
             if (body_type == BodyType::COLLISION) {
-                logger::debug("Adding collision body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
+                CLOG_DEBUG("Adding collision body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
 
                 this->physics_body = physics_world->createCollisionBody(this->previous_transform);
                 this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
