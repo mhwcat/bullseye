@@ -41,14 +41,14 @@ namespace bullseye::entity {
             this->previous_transform.getOrientation().x, this->previous_transform.getOrientation().y, this->previous_transform.getOrientation().z, this->previous_transform.getOrientation().w);
 
         if (body_type != BodyType::NO_PHYSICS) {
-            rp3d::BoxShape* boxShape = physics_common->createBoxShape(rp3d::Vector3(
+            rp3d::BoxShape* box_shape = physics_common->createBoxShape(rp3d::Vector3(
                 mesh->get_extents().x, mesh->get_extents().y, mesh->get_extents().z));
 
             if (body_type == BodyType::RIGID) {
                 CLOG_DEBUG("Adding rigid body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
                     
                 this->physics_body = physics_world->createRigidBody(this->previous_transform);
-                this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
+                this->physics_body->addCollider(box_shape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
                 if (mass > 0.f) {
                     dynamic_cast<rp3d::RigidBody*>(this->physics_body)->setMass(mass);
                 }
@@ -63,7 +63,7 @@ namespace bullseye::entity {
                 CLOG_DEBUG("Adding collision body for entity: %s, mesh: %s", this->name.c_str(), mesh->get_name());
 
                 this->physics_body = physics_world->createCollisionBody(this->previous_transform);
-                this->physics_body->addCollider(boxShape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
+                this->physics_body->addCollider(box_shape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
             }
             
         }

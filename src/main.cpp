@@ -32,6 +32,7 @@
 #include "texture_manager.h"
 #include "physics_debug_renderer.h"
 #include "mesh_manager.h"
+#include "player.h"
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
     mesh_manager.load_mesh("bullet", "assets/models/cube.obj", glm::vec3(0.3f, 0.3f, 0.3f));
 
     rp3d::PhysicsCommon physics_common;
-    rp3d::PhysicsWorld* world = physics_common.createPhysicsWorld();
+    rp3d::PhysicsWorld* physics_world = physics_common.createPhysicsWorld();
     rp3d::DefaultLogger* logger = physics_common.createDefaultLogger();
     uint32_t logLevel = static_cast<uint32_t>(static_cast<uint32_t>(rp3d::Logger::Level::Information) | static_cast<uint32_t>(rp3d::Logger::Level::Warning) | static_cast<uint32_t>(rp3d::Logger::Level::Error));
     logger->addStreamDestination(std::cout, logLevel, rp3d::DefaultLogger::Format::Text);
@@ -139,7 +140,7 @@ int main(int argc, char *argv[]) {
 
     CLOG_DEBUG("Initialized rp3d physics");
 
-    render::PhysicsDebugRenderer physics_debug_renderer(world);
+    render::PhysicsDebugRenderer physics_debug_renderer(physics_world);
 
     CLOG_DEBUG("Initialized rp3d physics debug renderer");
 
@@ -152,9 +153,13 @@ int main(int argc, char *argv[]) {
 
     entity::gun::Gun gun;
 
-    plane.init_physics(world, &physics_common, mesh_manager.get_mesh(plane.get_mesh_name()));
-    box.init_physics(world, &physics_common, mesh_manager.get_mesh(box.get_mesh_name()));
-    box2.init_physics(world, &physics_common, mesh_manager.get_mesh(box2.get_mesh_name()));
+    plane.init_physics(physics_world, &physics_common, mesh_manager.get_mesh(plane.get_mesh_name()));
+    box.init_physics(physics_world, &physics_common, mesh_manager.get_mesh(box.get_mesh_name()));
+    box2.init_physics(physics_world, &physics_common, mesh_manager.get_mesh(box2.get_mesh_name()));
+
+
+    entity::player::Player player(glm::vec3(-10.f, 0.f, 4.f), rp3d::Quaternion::identity());
+    CLOG_DEBUG("PLayer name: %s", player.get_name());
 
     std::vector<entity::Entity> entities;
     entities.push_back(std::move(box));
@@ -169,6 +174,13 @@ int main(int argc, char *argv[]) {
     light_cubes.push_back(mesh::Mesh("light", consts::SIMPLE_CUBE_VERTICES, sizeof(consts::SIMPLE_CUBE_VERTICES) / sizeof(float)));
 
     camera::Camera camera(WIDTH, HEIGHT);
+
+    // Init player collision
+    rp3d::BoxShape* player_shape = physics_common.createBoxShape(rp3d::Vector3(0.5f, 0.9f, 0.5f));
+    rp3d::RigidBody* player_physics_body = physics_world->createRigidBody(rp3d::Transform(rp3d::Vector3(camera.get_position()->x, camera.get_position()->y, camera.get_position()->z), rp3d::Quaternion::identity()));
+    player_physics_body->addCollider(player_shape, rp3d::Transform(rp3d::Vector3(), rp3d::Quaternion::identity()));
+    player_physics_body->enableGravity(false);
+    player_physics_body->setType(rp3d::BodyType::KINEMATIC);
 
     const std::vector<std::string> skybox_texture_paths({
         "assets/textures/skybox/posx.jpg",
@@ -252,7 +264,7 @@ int main(int argc, char *argv[]) {
                          q.normalize();
                          entity::Entity box(namebuf, glm::vec3(x, y, z), q, entity::BodyType::RIGID);
                          box.set_mesh("box");
-                         box.init_physics(world, &physics_common, mesh_manager.get_mesh("box"));
+                         box.init_physics(physics_world, &physics_common, mesh_manager.get_mesh("box"));
 
                          entities.push_back(std::move(box));
                      }
@@ -281,7 +293,7 @@ int main(int argc, char *argv[]) {
                             rp3d::Quaternion::fromEulerAngles(rp3d::Vector3(camera.get_front().x, camera.get_front().y, camera.get_front().z)),
                             entity::BodyType::RIGID);
                         bullet.set_mesh("bullet");
-                        bullet.init_physics(world, &physics_common, mesh_manager.get_mesh("bullet"), 0.1f);
+                        bullet.init_physics(physics_world, &physics_common, mesh_manager.get_mesh("bullet"), 0.1f);
                         bullet.set_force(camera.get_front() * 10.f);
 
                         volatile_entities.push_back(std::move(bullet));
@@ -325,8 +337,11 @@ int main(int argc, char *argv[]) {
         // ===== Logic update
         const float dt_ms = dt / 1000000.f;
         while(accumulator >= dt) {
-
             camera.update(dt_ms);
+            player_physics_body->setTransform(
+                rp3d::Transform(rp3d::Vector3(camera.get_position()->x, camera.get_position()->y, camera.get_position()->z), 
+                rp3d::Quaternion::fromEulerAngles(rp3d::Vector3(camera.get_front().x, camera.get_front().y, camera.get_front().z))));
+
             gun.update(dt_ms);
             
             for (auto &entity : entities) {
@@ -336,7 +351,7 @@ int main(int argc, char *argv[]) {
                 entity.update(dt_ms);
             }
 
-            world->update(dt_ms);
+            physics_world->update(dt_ms);
 
             time_elapsed += dt;
             accumulator -= dt;
@@ -421,7 +436,7 @@ int main(int argc, char *argv[]) {
             light_cube_mesh.draw_light_cube(); 
         }
 
-        if (world->getIsDebugRenderingEnabled()) {
+        if (physics_world->getIsDebugRenderingEnabled()) {
             physics_debug_renderer.draw(shader_manager.get_shader("physics_debug"), camera, interp);
         }
 
@@ -483,22 +498,22 @@ int main(int argc, char *argv[]) {
 
     CLOG_DEBUG("Unloading entities");
     for (auto &entity : entities) {
-        entity.unload(world);
+        entity.unload(physics_world);
     }
     for (auto& entity : volatile_entities) {
-        entity.unload(world);
+        entity.unload(physics_world);
     }
 
     for (auto light_cube_mesh : light_cubes) {
         light_cube_mesh.unload();
     }
 
-    gun.unload(world);
+    gun.unload(physics_world);
 
     skybox.unload();
 
     CLOG_DEBUG("Unloading rp3d");
-    physics_common.destroyPhysicsWorld(world);
+    physics_common.destroyPhysicsWorld(physics_world);
 
     CLOG_DEBUG("Shutting down ImGui");
     ImGui_ImplOpenGL3_Shutdown();
